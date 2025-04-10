@@ -251,76 +251,80 @@ void AlgorithmParam::updateControlOutputResult(const QString &name, const QStrin
 /// </summary>
 void AlgorithmParam::loadSavedParameters() {
     QFile file;
-    if(m_Type == "Halcon")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json");
-    }
-    else if(m_Type == "Python")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/python_algorithmparams.json");
-    }
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "No File Saved";
+    QString filePath = (m_Type == "Halcon")
+                           ? "D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json"
+                           : "D:/QtAlgorithm/Algorithm/python_algorithmparams.json";
+    file.setFileName(filePath);
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "No saved parameter file found";
         return;
     }
-    //新建Json对象
+
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     QJsonObject rootObj = doc.object();
     QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
-    //遍历Json，寻找与现有uuid对应的参数
+
     for (const QJsonValue &value : paramsArray) {
         QJsonObject obj = value.toObject();
-        if (obj["uuid"].toString() == m_uuid) {
-            ProcName = obj["ProcedureName"].toString();
-            ProgramPath = obj["ProgramPath"].toString();
+        if (obj["uuid"].toString() != m_uuid) continue;
 
-            std::list<std::string> tmpCtrlInput, tmpIconicInput, tmpCtrlOutput, tmpIconicOutput;
-            QJsonArray ctrlInput = obj["ctrlInputParams"].toArray();
-            for (const QJsonValue &param : ctrlInput) {
-                tmpCtrlInput.push_back(param.toString().toStdString());
-            }
+        // 1. 读取基本参数
+        ProcName = obj["ProcedureName"].toString();
+        ProgramPath = obj["ProgramPath"].toString();
 
-            QJsonArray iconicInput = obj["iconicInputParams"].toArray();
-            for (const QJsonValue &param : iconicInput) {
-                tmpIconicInput.push_back(param.toString().toStdString());
-            }
-
-            QJsonArray ctrlOutput = obj["ctrlOutputParams"].toArray();
-            for (const QJsonValue &param : ctrlOutput) {
-                tmpCtrlOutput.push_back(param.toString().toStdString());
-            }
-
-            QJsonArray iconicOutput = obj["iconicOutputParams"].toArray();
-            for (const QJsonValue &param : iconicOutput) {
-                tmpIconicOutput.push_back(param.toString().toStdString());
-            }
-
-            // 因Json不支持直接存储const char，所以提取出来之后转换回const char再调用表格生成的方法
-            CtrlInputParams.clear();
-            for (const auto& str : tmpCtrlInput) {
-                CtrlInputParams.push_back(str);
-            }
-
-            IconicInputParams.clear();
-            for (const auto& str : tmpIconicInput) {
-                IconicInputParams.push_back(str);
-            }
-
-            CtrlOutputParams.clear();
-            for (const auto& str : tmpCtrlOutput) {
-                CtrlOutputParams.push_back(str);
-            }
-
-            IconicOutputParams.clear();
-            for (const auto& str : tmpIconicOutput) {
-                IconicOutputParams.push_back(str);
-            }
-
-            // 调用表格生成方法
-            populateParameters(ProgramPath,ProcName,CtrlInputParams,IconicInputParams,CtrlOutputParams,IconicOutputParams);
-            break;
+        // 2. 读取参数列表（保持原有逻辑）
+        CtrlInputParams.clear();
+        QJsonArray ctrlInputNames = obj["ctrlInputParams"].toArray();
+        for (const QJsonValue &param : ctrlInputNames) {
+            QJsonObject paramObj = param.toObject();
+            CtrlInputParams.push_back(paramObj["name"].toString().toStdString());
         }
+
+        IconicInputParams.clear();
+        QJsonArray iconicInputNames = obj["iconicInputParams"].toArray();
+        for (const QJsonValue &param : iconicInputNames) {
+            IconicInputParams.push_back(param.toString().toStdString());
+        }
+
+        CtrlOutputParams.clear();
+        QJsonArray ctrlOutputNames = obj["ctrlOutputParams"].toArray();
+        for (const QJsonValue &param : ctrlOutputNames) {
+            CtrlOutputParams.push_back(param.toString().toStdString());
+        }
+
+        IconicOutputParams.clear();
+        QJsonArray iconicOutputNames = obj["iconicOutputParams"].toArray();
+        for (const QJsonValue &param : iconicOutputNames) {
+            IconicOutputParams.push_back(param.toString().toStdString());
+        }
+
+        // 3. 读取保存的控制输入参数值（新增逻辑）
+        QMap<QString, QString> ctrlInputValues;
+        QJsonArray savedCtrlInputs = obj["ctrlInputParams"].toArray();
+        for (const QJsonValue &paramValue : savedCtrlInputs) {
+            QJsonObject paramObj = paramValue.toObject();
+            ctrlInputValues[paramObj["name"].toString()] = paramObj["value"].toString();
+        }
+
+        // 4. 生成表格
+        populateParameters(ProgramPath, ProcName, CtrlInputParams, IconicInputParams, CtrlOutputParams, IconicOutputParams);
+
+        // 5. 填充保存的值（新增逻辑）
+        for (int row = 0; row < ui->tableWidget->rowCount(); ++row) {
+            QTableWidgetItem *nameItem = ui->tableWidget->item(row, 0);
+            if (!nameItem) continue; // 跳过分类标题行
+
+            QString paramName = nameItem->text();
+            if (ctrlInputValues.contains(paramName)) {
+                QLineEdit *lineEdit = qobject_cast<QLineEdit*>(ui->tableWidget->cellWidget(row, 1));
+                if (lineEdit) {
+                    lineEdit->setText(ctrlInputValues[paramName]);
+                }
+            }
+        }
+
+        break; // 找到对应UUID后退出
     }
     file.close();
 }
@@ -377,50 +381,69 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
     paramObj["Type"] = m_Type;
     paramObj["ProcedureName"] = ProcName;
     paramObj["ProgramPath"] = ProgramPath;
-    QJsonArray ctrlInput, iconicInput, ctrlOutput, iconicOutput;
-    for (const auto& param : CtrlInputParams) {
-        ctrlInput.append(QString::fromStdString(param));
+
+    // 1. 保存控制输入参数的值（新增逻辑）
+    QJsonArray ctrlInputArray;
+    for (int row = 0; row < ui->tableWidget->rowCount(); ++row) {
+        QTableWidgetItem *nameItem = ui->tableWidget->item(row, 0);
+        if (!nameItem) continue; // 跳过分类标题行（无item的行）
+
+        QString paramName = nameItem->text();
+        // 检查是否为控制输入参数
+        bool isCtrlInputParam = false;
+        for (const auto& param : CtrlInputParams) {
+            if (paramName == QString::fromStdString(param)) {
+                isCtrlInputParam = true;
+                break;
+            }
+        }
+
+        if (isCtrlInputParam) {
+            QLineEdit *lineEdit = qobject_cast<QLineEdit*>(ui->tableWidget->cellWidget(row, 1));
+            if (lineEdit) {
+                QJsonObject paramValueObj;
+                paramValueObj["name"] = paramName;
+                paramValueObj["value"] = lineEdit->text();
+                ctrlInputArray.append(paramValueObj);
+            }
+        }
     }
+    paramObj["ctrlInputParams"] = ctrlInputArray;
+
+    // 2. 其他参数类型（保持原有逻辑）
+    QJsonArray iconicInputArray, ctrlOutputArray, iconicOutputArray;
     for (const auto& param : IconicInputParams) {
-        iconicInput.append(QString::fromStdString(param));
+        iconicInputArray.append(QString::fromStdString(param));
     }
     for (const auto& param : CtrlOutputParams) {
-        ctrlOutput.append(QString::fromStdString(param));
+        ctrlOutputArray.append(QString::fromStdString(param));
     }
     for (const auto& param : IconicOutputParams) {
-        iconicOutput.append(QString::fromStdString(param));
+        iconicOutputArray.append(QString::fromStdString(param));
     }
 
-    paramObj["ctrlInputParams"] = ctrlInput;
-    paramObj["iconicInputParams"] = iconicInput;
-    paramObj["ctrlOutputParams"] = ctrlOutput;
-    paramObj["iconicOutputParams"] = iconicOutput;
+    paramObj["iconicInputParams"] = iconicInputArray;
+    paramObj["ctrlOutputParams"] = ctrlOutputArray;
+    paramObj["iconicOutputParams"] = iconicOutputArray;
 
+    // 3. 写入文件
     QFile file;
-    if(m_Type == "Halcon")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json");
-    }
-    else if(m_Type == "Python")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/python_algorithmparams.json");
-    }
+    QString filePath = (m_Type == "Halcon")
+                           ? "D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json"
+                           : "D:/QtAlgorithm/Algorithm/python_algorithmparams.json";
+    file.setFileName(filePath);
+
+    // 读取现有数据
     QJsonDocument doc;
     QJsonObject rootObj;
-
-    if (file.open(QIODevice::ReadWrite)) {
+    if (file.open(QIODevice::ReadOnly)) {
         doc = QJsonDocument::fromJson(file.readAll());
         rootObj = doc.object();
         file.close();
     }
-    else
-    {
-        qDebug() << "No File Saved";
-        return;
-    }
 
+    // 更新参数数组
     QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
-
     bool found = false;
     for (int i = 0; i < paramsArray.size(); ++i) {
         QJsonObject obj = paramsArray[i].toObject();
@@ -430,13 +453,10 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
             break;
         }
     }
-
-    if (!found) {
-        paramsArray.append(paramObj);
-    }
-
+    if (!found) paramsArray.append(paramObj);
     rootObj["algorithmParams"] = paramsArray;
 
+    // 写入文件
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         doc.setObject(rootObj);
         file.write(doc.toJson());

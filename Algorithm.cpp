@@ -431,7 +431,7 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
                                    .arg(mod).toUtf8());
         });
     }
-    if(TypeList.size()!= IconicInputParamsData.size()+CtrlOutputParamsData.size())
+    if(TypeList.size()!= IconicOutputParamsData.size()+CtrlOutputParamsData.size())
     {
         QMessageBox::critical(nullptr, "Error", "Excute Failed");
         return;
