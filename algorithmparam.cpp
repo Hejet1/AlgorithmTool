@@ -1,0 +1,666 @@
+#include "algorithmparam.h"
+#include "ui_algorithmparam.h"
+#include <QLineEdit>
+#include <QLabel>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QHeaderView>
+#include <QDebug>
+#include <Algorithm.h>
+#include <halconcpp/HalconCpp.h>
+#include <QVBoxLayout>
+#include <QMessageBox>
+#include <toolbox.h>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QFile>
+
+Algorithm Alg;
+using namespace HalconCpp;
+AlgorithmParam::AlgorithmParam(QWidget *parent)
+    : QDialog(parent), ui(new Ui::AlgorithmParam) {
+    ui->setupUi(this);
+    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // 初始化表格结构
+    ui->tableWidget->setColumnCount(2);
+    ui->tableWidget->setHorizontalHeaderLabels({"ParamName", "Value"});
+    ui->tableWidget->verticalHeader()->setVisible(false);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    Disp = new QHalconWindow(this);
+    Disp->setMinimumSize(50,50);
+    QVBoxLayout *DispVBox = new QVBoxLayout();
+    DispVBox->addWidget(Disp,1);
+    DispVBox->addSpacing(8);
+    ui->DispWidget->setLayout(DispVBox);
+}
+AlgorithmParam::~AlgorithmParam() {
+    delete ui;
+}
+void AlgorithmParam::closeEvent(QCloseEvent *event)
+{
+    QDialog::closeEvent(event);
+    Disp->close();
+   // Disp->GetHalconBuffer()->SetPart(-1,-1,-1,-1);
+}
+/// <summary>
+/// 动态生成参数表格
+/// </summary>
+void AlgorithmParam::populateParameters(QString ProgramPath,QString ProcName,std::list<std::string> CtrlInputParams,std::list<std::string> IconicInputParams,std::list<std::string> CtrlOutputParams,std::list<std::string> IconicOutputParams) {
+
+
+    m_CtrlOutputParams = CtrlOutputParams;
+    ui->tableWidget->clearContents();
+    ui->tableWidget->setRowCount(0);
+    m_ctrlInputLineEdits.clear();
+    ImagePathLineEdits.clear();
+
+    addProcNameRow("ProcedureName", ProcName);
+    addProgramPathRow("ProgramPath", ProgramPath);
+
+    // 控制输入参数
+    addSectionHeader("CtrlInputParams");
+    CtrlInputParamsCount = 0;
+    for (std::string paramName : CtrlInputParams) {
+        CtrlInputParamsCount = CtrlInputParamsCount+1;
+        addControlInputRow(QString::fromStdString(paramName));
+    }
+
+    // 图像输入参数
+    addSectionHeader("IconicInputParams");
+    for (std::string paramName : IconicInputParams) {
+        addImageInputRow(QString::fromStdString(paramName));
+    }
+
+    // 控制输出参数
+    addSectionHeader("CtrlOutputParams");
+    for (std::string paramName : CtrlOutputParams) {
+        addControlOutputRow(QString::fromStdString(paramName));
+    }
+
+    // 图像输出参数
+    addSectionHeader("IconicOutputParams");
+    for (std::string paramName : IconicOutputParams) {
+        addImageOutputRow(QString::fromStdString(paramName));
+    }
+}
+/// <summary>
+/// 添加分类标题行
+/// </summary>
+void AlgorithmParam::addSectionHeader(const QString &title) {
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->insertRow(row);
+    QTableWidgetItem *headerItem = new QTableWidgetItem(title);
+    headerItem->setBackground(QColor(240, 240, 240));
+    headerItem->setFlags(headerItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, headerItem);
+    ui->tableWidget->setSpan(row, 0, 1, 2);
+}
+/// <summary>
+/// 添加算子名称行
+/// </summary>
+void AlgorithmParam::addProcNameRow(const QString &label, const QString &ProcName) {
+    ui->tableWidget->insertRow(0);
+
+    QTableWidgetItem *labelItem = new QTableWidgetItem(label);
+    labelItem->setFlags(labelItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(0, 0, labelItem);
+
+    QLineEdit *pathLineEdit = new QLineEdit();
+    pathLineEdit->setText(ProcName);
+    pathLineEdit->setReadOnly(true);
+    pathLineEdit->setStyleSheet("QLineEdit { border: none; }");
+    ui->tableWidget->setCellWidget(0, 1, pathLineEdit);
+}
+/// <summary>
+/// 添加算法路径行
+/// </summary>
+void AlgorithmParam::addProgramPathRow(const QString &label, const QString &ProgramPath) {
+
+    ui->tableWidget->insertRow(0);
+
+    QTableWidgetItem *labelItem = new QTableWidgetItem(label);
+    labelItem->setFlags(labelItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(0, 0, labelItem);
+
+    QLineEdit *pathLineEdit = new QLineEdit();
+    pathLineEdit->setText(ProgramPath);
+    pathLineEdit->setReadOnly(true);
+    pathLineEdit->setStyleSheet("QLineEdit { border: none; }");
+    ui->tableWidget->setCellWidget(0, 1, pathLineEdit);
+}
+/// <summary>
+/// 添加控制输入行
+/// </summary>
+void AlgorithmParam::addControlInputRow(const QString &name) {
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->insertRow(row);
+
+    QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+    nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, nameItem);
+
+    QLineEdit *lineEdit = new QLineEdit();
+    lineEdit->setStyleSheet("QLineEdit { border: none; }");
+    lineEdit->setPlaceholderText("Input");
+
+    ui->tableWidget->setCellWidget(row, 1, lineEdit);
+    m_ctrlInputLineEdits.append(lineEdit);
+}
+/// <summary>
+/// 添加图像输入行
+/// </summary>
+void AlgorithmParam::addImageInputRow(const QString &name) {
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->insertRow(row);
+
+    QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+    nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, nameItem);
+
+    QWidget *widget = new QWidget();
+    QHBoxLayout *layout = new QHBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    QLineEdit *pathEdit = new QLineEdit();
+    pathEdit->setReadOnly(true);
+    pathEdit->setStyleSheet("QLineEdit { border: none; }");
+    pathEdit->setPlaceholderText("ImagePath");
+
+    QPushButton *button = new QPushButton("SelectImage");
+    layout->addWidget(pathEdit);
+    layout->addWidget(button);
+
+    widget->setLayout(layout);
+    ui->tableWidget->setCellWidget(row, 1, widget);
+
+    // 图片选择按钮点击信号
+    connect(button, &QPushButton::clicked, [this, pathEdit, name]() {
+        QString filePath = QFileDialog::getOpenFileName(
+            this, "选择图片", "", "图片文件 (*.png *.jpg *.bmp)"
+            );
+        if (!filePath.isEmpty()) {
+            pathEdit->setText(filePath);
+            loadAndDisplayImage(filePath);
+        }
+    });
+    ImagePathLineEdits.append(pathEdit);
+}
+/// <summary>
+/// 添加控制输出行
+/// </summary>
+void AlgorithmParam::addControlOutputRow(const QString &name) {
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->insertRow(row);
+
+    QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+    nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, nameItem);
+
+    QLineEdit *lineEdit = new QLineEdit("Output");
+    lineEdit->setReadOnly(true);
+    lineEdit->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    lineEdit->setStyleSheet("QLineEdit { border: none; }");
+    ui->tableWidget->setCellWidget(row, 1, lineEdit);
+}
+/// <summary>
+/// 添加图像输出行
+/// </summary>
+void AlgorithmParam::addImageOutputRow(const QString &name) {
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->insertRow(row);
+
+    QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+    nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, nameItem);
+}
+/// <summary>
+/// 显示图像
+/// </summary>
+void AlgorithmParam::loadAndDisplayImage(const QString &path) {
+    try {
+        ReadImage(&Image,path.toStdString().c_str());
+        GetImageSize(Image,&hvImageWidth,&hvImageHeight);
+        int Height = hvImageHeight[0].I();
+        int Width = hvImageWidth[0].I();
+        Disp->GetHalconBuffer()->SetPart(0,0,Height-1,Width-1);
+        Disp->GetHalconBuffer()->DispObj(Image);
+        Disp->GetHalconBuffer()->FlushBuffer();
+    } catch (HalconCpp::HException &e) {
+        QMessageBox::critical(this, "Error", "ImageLoadFail" + QString(e.ErrorMessage().Text()));
+    }
+}
+/// <summary>
+/// 更新运行后的控制输出行参数
+/// </summary>
+void AlgorithmParam::updateControlOutputResult(const QString &name, const QString &result) {
+    // 遍历所有行，查找名称匹配的项，匹配上则在对应行显示结果
+    for (int row = 0; row < ui->tableWidget->rowCount(); ++row) {
+        QTableWidgetItem *nameItem = ui->tableWidget->item(row, 0);
+        if (nameItem && nameItem->text() == name) {
+            QLineEdit *lineEdit = qobject_cast<QLineEdit*>(ui->tableWidget->cellWidget(row, 1));
+            if (lineEdit) {
+                lineEdit->setText(result);
+                break;
+            }
+        }
+    }
+}
+/// <summary>
+/// 从Json加载已保存的参数
+/// </summary>
+void AlgorithmParam::loadSavedParameters() {
+    QFile file;
+    if(m_Type == "Halcon")
+    {
+        file.setFileName("D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json");
+    }
+    else if(m_Type == "Python")
+    {
+        file.setFileName("D:/QtAlgorithm/Algorithm/python_algorithmparams.json");
+    }
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "No File Saved";
+        return;
+    }
+    //新建Json对象
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    QJsonObject rootObj = doc.object();
+    QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
+    //遍历Json，寻找与现有uuid对应的参数
+    for (const QJsonValue &value : paramsArray) {
+        QJsonObject obj = value.toObject();
+        if (obj["uuid"].toString() == m_uuid) {
+            ProcName = obj["ProcedureName"].toString();
+            ProgramPath = obj["ProgramPath"].toString();
+
+            std::list<std::string> tmpCtrlInput, tmpIconicInput, tmpCtrlOutput, tmpIconicOutput;
+            QJsonArray ctrlInput = obj["ctrlInputParams"].toArray();
+            for (const QJsonValue &param : ctrlInput) {
+                tmpCtrlInput.push_back(param.toString().toStdString());
+            }
+
+            QJsonArray iconicInput = obj["iconicInputParams"].toArray();
+            for (const QJsonValue &param : iconicInput) {
+                tmpIconicInput.push_back(param.toString().toStdString());
+            }
+
+            QJsonArray ctrlOutput = obj["ctrlOutputParams"].toArray();
+            for (const QJsonValue &param : ctrlOutput) {
+                tmpCtrlOutput.push_back(param.toString().toStdString());
+            }
+
+            QJsonArray iconicOutput = obj["iconicOutputParams"].toArray();
+            for (const QJsonValue &param : iconicOutput) {
+                tmpIconicOutput.push_back(param.toString().toStdString());
+            }
+
+            // 因Json不支持直接存储const char，所以提取出来之后转换回const char再调用表格生成的方法
+            CtrlInputParams.clear();
+            for (const auto& str : tmpCtrlInput) {
+                CtrlInputParams.push_back(str);
+            }
+
+            IconicInputParams.clear();
+            for (const auto& str : tmpIconicInput) {
+                IconicInputParams.push_back(str);
+            }
+
+            CtrlOutputParams.clear();
+            for (const auto& str : tmpCtrlOutput) {
+                CtrlOutputParams.push_back(str);
+            }
+
+            IconicOutputParams.clear();
+            for (const auto& str : tmpIconicOutput) {
+                IconicOutputParams.push_back(str);
+            }
+
+            // 调用表格生成方法
+            populateParameters(ProgramPath,ProcName,CtrlInputParams,IconicInputParams,CtrlOutputParams,IconicOutputParams);
+            break;
+        }
+    }
+    file.close();
+}
+/// <summary>
+/// 将获取的uuid,Type保存在常量中
+/// </summary>
+void AlgorithmParam::setAlgoinfoInfo(const QString &uuid,const QString &Type)
+{
+    m_uuid = uuid;
+    m_Type = Type;
+    //每次发生uuid传输就加载一次保存的参数
+    loadSavedParameters();
+}
+/// <summary>
+/// 加载算子
+/// </summary>
+void AlgorithmParam::on_LoadAlgorithmButton_clicked()
+{
+    QString ProgramPathCache = ProgramPath;
+    ProgramPath = QFileDialog::getOpenFileName(this, "SelectAlgorithm", "", "*.hdev;*.py");
+    if (ProgramPath.isEmpty())
+    {
+        ProgramPath = ProgramPathCache;
+        return;
+    }
+
+    // 每次获取之前将常量清除，避免表格生成出错
+    CtrlInputParams.clear();
+    IconicInputParams.clear();
+    CtrlOutputParams.clear();
+    IconicOutputParams.clear();
+
+    // 调用参数获取方法
+    Alg.GetParameter(ProgramPath,m_Type,CtrlInputParams, IconicInputParams, CtrlOutputParams, IconicOutputParams, ProcName,IsGetSuccess);
+
+    // 将算法路径传回toolbox界面对应uuid的文本框中
+    emit ProgramPathLoaded(ProgramPath, m_uuid);
+
+    // 调用动态表格生成方法
+    populateParameters(ProgramPath,ProcName, CtrlInputParams, IconicInputParams, CtrlOutputParams, IconicOutputParams);
+}
+/// <summary>
+/// 保存参数
+/// </summary>
+void AlgorithmParam::on_SaveParameterButton_clicked()
+{
+    if (m_uuid.isEmpty() || ProcName.isEmpty()) {
+        QMessageBox::warning(this, "Warning", "No parameters to save.");
+        return;
+    }
+
+    QJsonObject paramObj;
+    paramObj["uuid"] = m_uuid;
+    paramObj["Type"] = m_Type;
+    paramObj["ProcedureName"] = ProcName;
+    paramObj["ProgramPath"] = ProgramPath;
+    QJsonArray ctrlInput, iconicInput, ctrlOutput, iconicOutput;
+    for (const auto& param : CtrlInputParams) {
+        ctrlInput.append(QString::fromStdString(param));
+    }
+    for (const auto& param : IconicInputParams) {
+        iconicInput.append(QString::fromStdString(param));
+    }
+    for (const auto& param : CtrlOutputParams) {
+        ctrlOutput.append(QString::fromStdString(param));
+    }
+    for (const auto& param : IconicOutputParams) {
+        iconicOutput.append(QString::fromStdString(param));
+    }
+
+    paramObj["ctrlInputParams"] = ctrlInput;
+    paramObj["iconicInputParams"] = iconicInput;
+    paramObj["ctrlOutputParams"] = ctrlOutput;
+    paramObj["iconicOutputParams"] = iconicOutput;
+
+    QFile file;
+    if(m_Type == "Halcon")
+    {
+        file.setFileName("D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json");
+    }
+    else if(m_Type == "Python")
+    {
+        file.setFileName("D:/QtAlgorithm/Algorithm/python_algorithmparams.json");
+    }
+    QJsonDocument doc;
+    QJsonObject rootObj;
+
+    if (file.open(QIODevice::ReadWrite)) {
+        doc = QJsonDocument::fromJson(file.readAll());
+        rootObj = doc.object();
+        file.close();
+    }
+    else
+    {
+        qDebug() << "No File Saved";
+        return;
+    }
+
+    QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
+
+    bool found = false;
+    for (int i = 0; i < paramsArray.size(); ++i) {
+        QJsonObject obj = paramsArray[i].toObject();
+        if (obj["uuid"].toString() == m_uuid) {
+            paramsArray[i] = paramObj;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        paramsArray.append(paramObj);
+    }
+
+    rootObj["algorithmParams"] = paramsArray;
+
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        doc.setObject(rootObj);
+        file.write(doc.toJson());
+        file.close();
+        QMessageBox::information(this, "Success", "Parameters saved.");
+    } else {
+        QMessageBox::critical(this, "Error", "Failed to save parameters.");
+    }
+}
+/// <summary>
+/// 运行算子
+/// </summary>
+void AlgorithmParam::on_RunProcedureButton_clicked()
+{
+    if(m_Type == "Halcon")
+    {
+        QList<QString> TypeList;
+        HTuple CtrlInputParamsData;
+        HObject IconicInputParamsData,ImageIn,SelectedObj,Num;
+        HTuple CtrlOutputParamsData;
+        HObject IconicOutputParamsData;
+        std::list<QString> imgpath;
+        GenEmptyObj(&IconicInputParamsData);
+
+        // 遍历输入的所有参数
+        for (QLineEdit *lineEdit : m_ctrlInputLineEdits)
+        {
+            QString text = lineEdit->text();
+            bool isDouble = false;
+            double value = text.toDouble(&isDouble);
+            if (isDouble)
+            {
+                CtrlInputParamsData.Append(value);
+            }
+            else
+            {
+                HTuple textstring = lineEdit->text().toStdString().c_str();
+                CtrlInputParamsData.Append(textstring);
+            }
+        }
+
+        // 遍历选择的图像路径并添加到list imgpath中
+        for (QLineEdit *pathEdit : ImagePathLineEdits)
+        {
+            try
+            {
+                QString text = pathEdit->text();
+                imgpath.push_back(text);
+            } catch (exception &e)
+            {
+                QMessageBox::critical(nullptr,"Warning"," Table Initialize Failed",QMessageBox::Ok);
+                return;
+            }
+        }
+
+        // 遍历list imgpath 读取图像并将所有图像加载入同一个Obj容器中
+        for (QString path : imgpath)
+        {
+            if(path == "")
+            {
+                QMessageBox::critical(nullptr,"Warning"," NO IconicInputParamsData Send",QMessageBox::Ok);
+                return;
+            }
+            else
+            {
+                ReadImage(&ImageIn,path.toStdString().c_str());
+                ConcatObj(IconicInputParamsData,ImageIn,&IconicInputParamsData);
+            }
+        }
+
+
+        // 调用算子执行方法
+        if(ProgramPath.isEmpty())
+        {
+            QMessageBox::critical(nullptr,"Warning"," NO ProgramPath Send",QMessageBox::Ok);
+            return;
+        }
+        else if(CtrlInputParamsCount!=0 && CtrlInputParamsData.Length() == 0)
+        {
+            QMessageBox::critical(nullptr,"Warning"," NO CtrlInputParamsData Send",QMessageBox::Ok);
+            return;
+        }
+        else
+        {
+            Alg.ExcuteProcedure(ProgramPath,CtrlInputParamsData,IconicInputParamsData,CtrlOutputParamsData,IconicOutputParamsData,TypeList,IsRunSuccess);
+        }
+
+        if(IsRunSuccess)
+        {
+            // 获取输出图片并显示再界面上
+            for (int i = 0; i < IconicOutputParamsData.CountObj(); i++) {
+                SelectObj(IconicOutputParamsData,&SelectedObj,i+1);
+                WriteImage(SelectedObj,"jpg",0,"D:/QtAlgorithm/Algorithm/outimage.jpg");
+                loadAndDisplayImage("D:/QtAlgorithm/Algorithm/outimage.jpg");
+
+                // 获取输出控制参数数值类型为real，字符串类型为string
+                int i1 = 0;
+                for (const std::string& paramName : m_CtrlOutputParams)
+                {
+                    if(TypeList[i1] == "string")
+                    {
+                        QString CtrlOutputParam = QString(CtrlOutputParamsData[i1].S());
+                        updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
+                        i1=i1+1;
+                    }
+                    else if(TypeList[i1] == "real")
+                    {
+                        QString CtrlOutputParam = QString::number(CtrlOutputParamsData[i1].D());
+                        updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
+                        i1=i1+1;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // 获取输出控制参数数值类型为real，字符串类型为string
+            int i1 = 0;
+            for (const std::string& paramName : m_CtrlOutputParams)
+            {
+                if(TypeList[i1] == "string")
+                {
+                    QString CtrlOutputParam = "Error";
+                    updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
+                    i1=i1+1;
+                }
+                else if(TypeList[i1] == "real")
+                {
+                    QString CtrlOutputParam = "Error";
+                    updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
+                    i1=i1+1;
+                }
+            }
+            return;
+        }
+    }
+    else if(m_Type == "Python")
+    {
+        QList<QString> TypeList;
+        QList<QString> CtrlInputParamsData;
+        QList<cv::Mat> IconicInputParamsData;
+        QList<QString> CtrlOutputParamsData;
+        QList<cv::Mat> IconicOutputParamsData;
+        QList<QString>imgpath;
+        cv::Mat ImageIn;
+        // 遍历输入的所有参数
+        for (QLineEdit *lineEdit : m_ctrlInputLineEdits)
+        {
+            QString text = lineEdit->text();
+            CtrlInputParamsData.push_back(text);
+
+        }
+
+        // 遍历选择的图像路径并添加到list imgpath中
+        for (QLineEdit *pathEdit : ImagePathLineEdits)
+        {
+            try
+            {
+                QString text = pathEdit->text();
+                imgpath.push_back(text);
+            } catch (exception &e)
+            {
+                QMessageBox::critical(nullptr,"Warning"," Table Initialize Failed",QMessageBox::Ok);
+                return;
+            }
+        }
+        //遍历list imgpath 读取图像并将所有图像加载入同一个Obj容器中
+        for (QString path : imgpath)
+        {
+            if(path == "")
+            {
+                QMessageBox::critical(nullptr,"Warning"," NO IconicInputParamsData Send",QMessageBox::Ok);
+                return;
+            }
+            else
+            {
+                ImageIn = cv::imread(path.toStdString().c_str(),cv::IMREAD_COLOR_BGR);
+                IconicInputParamsData.push_back(ImageIn);
+            }
+        }
+        // 调用算子执行方法
+        if(ProgramPath.isEmpty())
+        {
+            QMessageBox::critical(nullptr,"Warning"," NO ProgramPath Send",QMessageBox::Ok);
+            return;
+        }
+        else if(CtrlInputParamsCount!=0 && CtrlInputParamsData.size() == 0)
+        {
+            QMessageBox::critical(nullptr,"Warning"," NO CtrlInputParamsData Send",QMessageBox::Ok);
+            return;
+        }
+        else
+        {
+            Alg.ExcuteProcedure(ProgramPath,CtrlInputParamsData,IconicInputParamsData,CtrlOutputParamsData,IconicOutputParamsData,TypeList,IsRunSuccess);
+        }
+
+        if(IsRunSuccess)
+        {
+            // 获取输出图片并显示再界面上
+            for (int i = 0; i < IconicOutputParamsData.size(); i++) {
+                cv::imwrite("D:/QtAlgorithm/Algorithm/outimage.jpg",IconicOutputParamsData[i]);
+                loadAndDisplayImage("D:/QtAlgorithm/Algorithm/outimage.jpg");
+
+                // 获取输出控制参数数值类型为real，字符串类型为string
+                int i1 = 0;
+                for (const std::string& paramName : m_CtrlOutputParams)
+                {
+                    updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParamsData[i1]);
+                    i1=i1+1;
+                }
+            }
+        }
+        else
+        {
+            // 获取输出控制参数数值类型为real，字符串类型为string
+            for (const std::string& paramName : m_CtrlOutputParams)
+            {
+                updateControlOutputResult(QString::fromStdString(paramName),"Error");
+            }
+            return;
+        }
+    }
+
+
+
+
+}
