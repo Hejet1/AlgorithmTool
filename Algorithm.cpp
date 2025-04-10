@@ -7,8 +7,8 @@
 #include "Algorithm.h"
 #include <QDebug>
 #include <QProcess>
+#include <QFileSystemWatcher>
 #include "my_hdevoperatorimpl.h"
-
 
 using namespace std;
 using namespace HalconCpp;
@@ -258,15 +258,24 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     // 获取.py文件所在目录
     QFileInfo fileInfo(ProgramPath);
     QString dirPath = fileInfo.absolutePath();
-
+    QString moduleName = fileInfo.baseName();
     // 将目录添加到Python路径
 
     PyRun_SimpleString( "import sys\n"
                        "sys.stderr = open('python_errorsrun.log', 'w')\n" );
     PyRun_SimpleString(QString("sys.path.insert(0, '%1')").arg(dirPath).toUtf8().constData());
 
+    // 强制清除模块缓存（关键修改点）
+    PyObject* sys = PyImport_ImportModule("sys");
+    PyObject* modules = PyObject_GetAttrString(sys, "modules");
+    if (PyDict_Contains(modules, PyUnicode_FromString(moduleName.toUtf8()))) {
+        PyDict_DelItemString(modules, moduleName.toUtf8().constData());
+    }
+    Py_DECREF(modules);
+    Py_DECREF(sys);
+    PyRun_SimpleString("import gc; gc.collect()"); // 强制垃圾回收
+
     // 导入模块
-    QString moduleName = fileInfo.baseName();
     PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
     if (!pModule) {
         PyErr_Print();
@@ -417,6 +426,19 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     Py_DECREF(pArgs);
     Py_DECREF(pFunc);
     Py_DECREF(pModule);
+
+    // 监控文件变更（新增功能）
+    static QFileSystemWatcher watcher;
+    if (!watcher.files().contains(ProgramPath)) {
+        watcher.addPath(ProgramPath);
+        QObject::connect(&watcher, &QFileSystemWatcher::fileChanged, [=](const QString &path){
+            QFileInfo fi(path);
+            QString mod = fi.baseName();
+            PyRun_SimpleString(QString("if '%1' in sys.modules: del sys.modules['%1']")
+                                   .arg(mod).toUtf8());
+        });
+    }
+
 
     IsRunSucess = true;
 };
