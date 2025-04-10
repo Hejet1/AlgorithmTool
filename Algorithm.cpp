@@ -27,7 +27,7 @@ int InitializePython()
     return 0;
 }
 /// <summary>
-/// 获取算子参数
+/// 获取算子参数(ceshiceshi )
 /// </summary>
 void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::string> &CtrlInputParams,std::list<std::string> &IconicInputParams,std::list<std::string> &CtrlOutputParams,std::list<std::string> &IconicOutputParams,QString &ProcName,bool &IsGetSuccess)
 {
