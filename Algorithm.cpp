@@ -366,13 +366,7 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
                     if (valueObj && typeObj) {
                         // 添加类型标记
                         TypeList.append(PyUnicode_AsUTF8(typeObj));
-
-                        // 转换数值类型
-                        if (PyFloat_Check(valueObj)) {
-                            CtrlOutputParamsData.append(QString::number(PyFloat_AsDouble(valueObj)));
-                        } else if (PyLong_Check(valueObj)) {
-                            CtrlOutputParamsData.append(QString::number(PyLong_AsLong(valueObj)));
-                        }
+                        CtrlOutputParamsData.append(QString::fromUtf8(PyUnicode_AsUTF8(PyObject_Str(valueObj))));
                     }
                 }
             }
@@ -438,7 +432,11 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
                                    .arg(mod).toUtf8());
         });
     }
-
+    if(TypeList.size()!= IconicInputParamsData.size()+CtrlOutputParamsData.size())
+    {
+        QMessageBox::critical(nullptr, "Error", "Excute Failed");
+        return;
+    }
 
     IsRunSucess = true;
 };
