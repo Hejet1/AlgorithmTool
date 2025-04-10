@@ -420,7 +420,6 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     Py_DECREF(pArgs);
     Py_DECREF(pFunc);
     Py_DECREF(pModule);
-
     // 监控文件变更（新增功能）
     static QFileSystemWatcher watcher;
     if (!watcher.files().contains(ProgramPath)) {
