@@ -291,7 +291,6 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
         qDebug() << "找不到main函数";
         Py_XDECREF(pFunc);
         Py_DECREF(pModule);
-        Py_FinalizeEx();
         return;
     }
 
@@ -341,7 +340,6 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
         Py_DECREF(pArgs);
         Py_DECREF(pFunc);
         Py_DECREF(pModule);
-        Py_FinalizeEx();
         return;
     }
 
