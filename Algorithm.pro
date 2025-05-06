@@ -16,6 +16,7 @@ SOURCES += \
     my_hdevoperatorimpl.cpp \
     my_thread_impl.cpp \
     qhalconwindow.cpp \
+    run.cpp \
     toolbox.cpp
 
 HEADERS += \
@@ -25,6 +26,7 @@ HEADERS += \
     my_hdevoperatorimpl.h \
     my_thread_impl.h \
     qhalconwindow.h \
+    run.h \
     toolbox.h
 
 FORMS += \

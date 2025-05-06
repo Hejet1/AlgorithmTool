@@ -61,7 +61,7 @@ private:
     std::list<std::string> m_storedIconicInputs;
     std::list<std::string> m_storedCtrlOutputs;
     std::list<std::string> m_storedIconicOutputs;
-    QString ProcName;
+    QString ProcName,ProcType;
     bool IsRunSuccess,IsGetSuccess;
 
 protected:

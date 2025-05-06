@@ -251,9 +251,7 @@ void AlgorithmParam::updateControlOutputResult(const QString &name, const QStrin
 /// </summary>
 void AlgorithmParam::loadSavedParameters() {
     QFile file;
-    QString filePath = (m_Type == "Halcon")
-                           ? "D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json"
-                           : "D:/QtAlgorithm/Algorithm/python_algorithmparams.json";
+    QString filePath = "D:/QtAlgorithm/Algorithm/algorithmparams.json";
     file.setFileName(filePath);
 
     if (!file.open(QIODevice::ReadOnly)) {
@@ -272,7 +270,7 @@ void AlgorithmParam::loadSavedParameters() {
         // 1. 读取基本参数
         ProcName = obj["ProcedureName"].toString();
         ProgramPath = obj["ProgramPath"].toString();
-
+        ProcType = obj["Type"].toString();
         // 2. 读取参数列表（保持原有逻辑）
         CtrlInputParams.clear();
         QJsonArray ctrlInputNames = obj["ctrlInputParams"].toArray();
@@ -306,7 +304,6 @@ void AlgorithmParam::loadSavedParameters() {
             QJsonObject paramObj = paramValue.toObject();
             ctrlInputValues[paramObj["name"].toString()] = paramObj["value"].toString();
         }
-
         // 4. 生成表格
         populateParameters(ProgramPath, ProcName, CtrlInputParams, IconicInputParams, CtrlOutputParams, IconicOutputParams);
 
@@ -325,6 +322,7 @@ void AlgorithmParam::loadSavedParameters() {
         }
 
         break; // 找到对应UUID后退出
+
     }
     file.close();
 }
@@ -428,9 +426,7 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
 
     // 3. 写入文件
     QFile file;
-    QString filePath = (m_Type == "Halcon")
-                           ? "D:/QtAlgorithm/Algorithm/halcon_algorithmparams.json"
-                           : "D:/QtAlgorithm/Algorithm/python_algorithmparams.json";
+    QString filePath = "D:/QtAlgorithm/Algorithm/algorithmparams.json";
     file.setFileName(filePath);
 
     // 读取现有数据
@@ -441,20 +437,20 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
         rootObj = doc.object();
         file.close();
     }
-
-    // 更新参数数组
+    // 创建新数组，只保留不同名的参数
     QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
-    bool found = false;
-    for (int i = 0; i < paramsArray.size(); ++i) {
-        QJsonObject obj = paramsArray[i].toObject();
-        if (obj["uuid"].toString() == m_uuid) {
-            paramsArray[i] = paramObj;
-            found = true;
-            break;
+    QJsonArray newParamsArray;
+    for (const auto& param : paramsArray) {
+        QJsonObject obj = param.toObject();
+        // 过滤掉同名的旧记录
+        if (obj["ProcedureName"].toString() != ProcName) {
+            newParamsArray.append(param);
         }
     }
-    if (!found) paramsArray.append(paramObj);
-    rootObj["algorithmParams"] = paramsArray;
+
+    // 添加新参数
+    newParamsArray.append(paramObj);
+    rootObj["algorithmParams"] = newParamsArray;
 
     // 写入文件
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {

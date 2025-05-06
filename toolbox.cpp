@@ -60,38 +60,50 @@ void toolbox::updateProgramPath(const QString &ProgramPath, const QString &uuid)
 /// 将界面表的数据存储到Json
 /// </summary>
 void toolbox::saveTableDataToJson() {
-    QJsonArray jsonArray;
-    QFile file;
-    // 定义保存对象类型
-    if(m_Type == "Halcon")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/halcon_saved_data.json");
+    QFile file("D:/QtAlgorithm/Algorithm/saved_data.json");
+    QJsonArray existingArray;
+
+    // 读取现有文件内容
+    if (file.open(QIODevice::ReadOnly)) {
+        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+        existingArray = doc.array();
+        file.close();
     }
-    else if(m_Type == "Python")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/python_saved_data.json");
-    }
-    // 遍历 UUID 到 LineEdit 的映射
-    for (auto it = m_uuidToLineEdit.begin(); it != m_uuidToLineEdit.end(); ++it)
-    {
+
+    // 遍历当前要保存的参数
+    for (auto it = m_uuidToLineEdit.begin(); it != m_uuidToLineEdit.end(); ++it) {
         const QString& uuid = it.key();
         QLineEdit* lineEdit = it.value();
-        // 创建 JSON 对象并添加字段
-        QJsonObject jsonObj;
-        jsonObj["AlgorithmPath"] = lineEdit->text();
-        jsonObj["AlgorithmType"] = m_Type;
-        jsonObj["uuid"] = uuid;
-        jsonArray.append(jsonObj);
+        QString currentPath = lineEdit->text();
+
+        // 创建新JSON对象
+        QJsonObject newObj;
+        newObj["AlgorithmPath"] = currentPath;
+        newObj["AlgorithmType"] = m_Type;
+        newObj["uuid"] = uuid;
+
+        // 删除已存在的相同AlgorithmPath条目
+        for (int i = existingArray.size() - 1; i >= 0; --i) {
+            QJsonObject oldObj = existingArray[i].toObject();
+            if (oldObj["AlgorithmPath"].toString() == currentPath) {
+                existingArray.removeAt(i);
+            }
+        }
+
+        // 添加新条目
+        existingArray.append(newObj);
     }
-    QJsonDocument jsonDoc(jsonArray);
-    // 保存参数
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(jsonDoc.toJson());
+
+    // 写入更新后的数据
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QJsonDocument newDoc(existingArray);
+        file.write(newDoc.toJson());
         file.close();
         QMessageBox::information(this, "Success", "Parameters saved.");
         qDebug() << "Save Success";
+    } else {
+        QMessageBox::critical(this, "Error", "Failed to save parameters.");
     }
-
 }
 /// <summary>
 /// 从Json读取参数
@@ -100,14 +112,7 @@ void toolbox::loadTableDataFromJson()
 {
     QFile file;
     // 定义保存对象类型
-    if(m_Type == "Halcon")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/halcon_saved_data.json");
-    }
-    else if(m_Type == "Python")
-    {
-        file.setFileName("D:/QtAlgorithm/Algorithm/python_saved_data.json");
-    }
+    file.setFileName("D:/QtAlgorithm/Algorithm/saved_data.json");
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "No File Saved";
         return;
@@ -122,11 +127,13 @@ void toolbox::loadTableDataFromJson()
     for (const QJsonValue &value : jsonArray) {
         QJsonObject obj = value.toObject();
         QString AlgorithmPath = obj["AlgorithmPath"].toString();
-
+        QString ProcType = obj["AlgorithmType"].toString();
+        if (m_Type == ProcType)
+        {
         // 插入新行
         int row = ui->tableWidget->rowCount();
         ui->tableWidget->insertRow(row);
-        // 读取保存的 UUID，此处只能读取uuid，不可新建，否贼会读取错误
+        // 读取保存的 UUID，此处只能读取uuid，不可新建，否则会读取错误
         QString uuid = obj["uuid"].toString();
 
         QLineEdit *lineEdit = new QLineEdit();
@@ -180,6 +187,7 @@ void toolbox::loadTableDataFromJson()
             // 从映射中移除 uuid
             m_uuidToLineEdit.remove(uuid);
         });
+        }
     }
 
     file.close();
