@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2]" as_ord="1">list_files ('F:/HD2423', ['files','follow_links'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,3]" as_ord="1">tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,2]" as_ord="1">for Index := 0 to |ImageFiles| - 1 by 1</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,3]" as_ord="1">    read_image (Image1, 'F:/HD2423/1.jpg')</l>
+<l>    read_image (Image2, 'F:/HD2423/2.jpg')</l>
+<l>    Find_Data_Matrix (Image1, Image2, ImageOut, 1, 2, DecodedDataStrings1, DecodedDataStrings2)</l>
+<c></c>
+<l>    stop()</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[3,1]" as_ord="1">endfor</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="Find_Data_Matrix">
+<interface>
+<io>
+<par name="Image1" base_type="iconic" dimension="0"/>
+<par name="Image2" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="ImageOut" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="In1" base_type="ctrl" dimension="0"/>
+<par name="In2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="DecodedDataStrings1" base_type="ctrl" dimension="0"/>
+<par name="DecodedDataStrings2" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>create_data_code_2d_model ('Data Matrix ECC 200', [], [], DataCodeHandle)</l>
+<l>find_data_code_2d (Image1, SymbolXLDs1, DataCodeHandle, [], [], ResultHandles1, DecodedDataStrings1)</l>
+<l>find_data_code_2d (Image2, SymbolXLDs2, DataCodeHandle, [], [], ResultHandles2, DecodedDataStrings2)</l>
+<l>concat_obj (Image1, Image2, ObjectsConcat)</l>
+<l>tile_images (ObjectsConcat, TiledImage, 1, 'vertical')</l>
+<l>get_image_size (TiledImage, Width, Height)</l>
+<l>open_window (0, 0, Width, Height, 0, 'invisible', '', WindowHandle)</l>
+<l>set_colored (WindowHandle, 12)</l>
+<l>set_part (WindowHandle, 0, 0, Height-1, Width-1)</l>
+<l>disp_obj (TiledImage, WindowHandle)</l>
+<l>disp_message (WindowHandle, In1+'\r\n'+In2+'\r\n'+DecodedDataStrings2, 'image', 12, 12, 'black', 'true')</l>
+<l>dump_window_image (ImageOut, WindowHandle)</l>
+<l>return ()</l>
+</body>
+<docu id="Find_Data_Matrix">
+<parameters>
+<parameter id="DecodedDataStrings1">
+<default_type>string</default_type>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="DecodedDataStrings2">
+<default_type>string</default_type>
+<sem_type>string</sem_type>
+<type_list>
+<item>string</item>
+</type_list>
+</parameter>
+<parameter id="Image1"/>
+<parameter id="Image2"/>
+<parameter id="ImageOut"/>
+<parameter id="In1"/>
+<parameter id="In2"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

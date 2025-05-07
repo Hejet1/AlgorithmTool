@@ -1,0 +1,40 @@
+CtrlInputParamDict = {
+    "Input1": {
+        "Value": "1",
+        "Type": "string",
+    },
+    "Input2": {
+        "Value": "2",
+        "Type": "string",
+    },
+    "Input3": {
+        "Value": "3",
+        "Type": "string",
+    },
+}
+CtrlOutputParamDict = {
+    "IsOK": {
+        "Value": 0.0,
+        "Type": "real",
+    },
+    "Confidence": {
+        "Value": 0.0,
+        "Type": "real",
+    }
+}
+IconicInputParamDict = {
+    "Image1": {
+        "Value": "",
+        "Type": "img",
+    },
+    "Image2": {
+        "Value": "",
+        "Type": "img",
+    }
+}
+IconicOutputParamDict = {
+    "ImageOut": {
+        "Value": "",
+        "Type": "img",
+    }
+}

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>list_files ('.', ['files','follow_links'], ImageFiles)</l>
+<l>tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles)</l>
+<l>for Index := 0 to |ImageFiles| - 1 by 1</l>
+<l>    read_image (Image, 'F:/HD2423/OP80_2_20.png')</l>
+<l>    *open_window (0, 0, 1024, 1024, 0, 'invisible', '', WindowHandle)</l>
+<l>    M_OP80_Defect (Image, Image1, Detect_result)</l>
+<l>stop()</l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="M_OP80_Defect">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Image1" base_type="iconic" dimension="0"/>
+</oo>
+<oc>
+<par name="Detect_result" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>Detect_result := false</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>open_window (0, 0, Width, Height, 0, 'invisible', '', WindowHandle)</l>
+<l>set_part (WindowHandle, 0, 0, Height-1, Width-1)</l>
+<l>set_line_width (WindowHandle, 3)</l>
+<l>set_colored (WindowHandle, 12)</l>
+<l>set_display_font (WindowHandle, Width/20, 'mono', 'true', 'false') </l>
+<l>try </l>
+<l>    rgb1_to_gray (Image, GrayImage)</l>
+<l>    threshold (GrayImage, Regions, 50, 255)</l>
+<l>    connection (Regions, ConnectedRegions)</l>
+<l>    select_shape (ConnectedRegions, SelectedRegions, ['ra','rb','circularity'], 'and', [25,25,0.7],[ 55,55,1])</l>
+<l>    gen_contour_region_xld (SelectedRegions, Contours, 'border')</l>
+<l>    fit_circle_contour_xld (Contours, 'algebraic', -1, 0, 0, 3, 2, Row, Column, Radius, StartPhi, EndPhi, PointOrder)</l>
+<l>    gen_circle (Circle, Row, Column, 190)</l>
+<l>    reduce_domain (Image, Circle, ImageReduced)</l>
+<l>    decompose3 (ImageReduced, R, G, B)</l>
+<l>    trans_from_rgb (R, G, B, H, S, V, 'hsv')</l>
+<l>    threshold (H, Regions1, 160, 254)</l>
+<l>    fill_up (Regions1, RegionFillUp)</l>
+<l>    connection (RegionFillUp, ConnectedRegions1)</l>
+<l>    select_shape (ConnectedRegions1, SelectedRegions1, ['ra','rb'], 'and', [150,150],[ 180,180])</l>
+<l>    opening_circle (SelectedRegions1, RegionOpening, 3.5)</l>
+<l>    region_features (RegionOpening, 'ra', ra)</l>
+<l>    region_features (RegionOpening, 'rb', rb)</l>
+<l>    area_center (SelectedRegions1, Area, Row1, Column1)</l>
+<l>    gen_contour_region_xld (SelectedRegions1, Contours1, 'border')</l>
+<l>    D:=ra-rb</l>
+<c>    </c>
+<l>*     scale_image (Image, ImageScaledzhengfan, 15.9375, 0)</l>
+<l>*     rgb1_to_gray (Image, GrayImagezhengfan)</l>
+<l>*     threshold (ImageScaledzhengfan, Regionszhengfan, 200, 255)</l>
+<l>*     connection (Regionszhengfan, ConnectedRegionszhengfan)</l>
+<l>*     select_shape (ConnectedRegionszhengfan, SelectedRegionszhengfan, ['ra','rb'], 'and', [500,500], [650,650])</l>
+<l>*     gen_contour_region_xld (SelectedRegionszhengfan, Contours1zhengfan, 'border')</l>
+<l>*     fit_circle_contour_xld (Contours1zhengfan, 'algebraic', -1, 0, 0, 3, 2, Row1zhengfan, Column1zhengfan, Radiuszhengfan, StartPhi, EndPhi, PointOrder)</l>
+<l>    scale_image_range (GrayImage, ImageScaledzhengfan, 0, 40)</l>
+<l>    scale_image_range (ImageScaledzhengfan, ImageScaledzhengfan, 18, 138)</l>
+<l>    create_metrology_model (MetrologyHandlezhengfan)</l>
+<l>    add_metrology_object_circle_measure (MetrologyHandlezhengfan, Row,  Column, 140, 10, 5, 1, 30, [], [], Index1)</l>
+<l>    set_metrology_object_param (MetrologyHandlezhengfan, 'all', 'measure_select', 'first')</l>
+<l>    apply_metrology_model (ImageScaledzhengfan, MetrologyHandlezhengfan)</l>
+<l>    get_metrology_object_measures (Contourszhengfan, MetrologyHandlezhengfan, 'all', 'all', Rowzhengfan, Columnzhengfan)</l>
+<l>    gen_cross_contour_xld (Cross, Rowzhengfan, Columnzhengfan, 20, 0.785398)</l>
+<l>    get_metrology_object_result (MetrologyHandlezhengfan, 0, 'all', 'result_type', 'all_param', Parameterzhengfan)</l>
+<l>*     scale_image (Image, Image, 2.47573, 0)</l>
+<l>if (Parameterzhengfan!=[])</l>
+<l>     disp_obj (Image,WindowHandle)</l>
+<l>     gen_circle_contour_xld (ContCirclezhengfan, Parameterzhengfan[0], Parameterzhengfan[1], Parameterzhengfan[2], 0, 6.2813, 'positive', 1)  </l>
+<l>     disp_obj (ContCirclezhengfan,WindowHandle)</l>
+<l>     Detect_result := false</l>
+<l>     disp_message (WindowHandle,'橡胶垫反', 'image', 12, 12, 'red', 'true')     </l>
+<l>     dump_window_image (Image1,WindowHandle )</l>
+<l>     return()</l>
+<l>endif</l>
+<l>if (Area!=[] and Area&gt;75000 and D&lt;10 )</l>
+<l>     disp_obj (Image,WindowHandle)</l>
+<l>     disp_obj (Contours1,WindowHandle)</l>
+<l>     Detect_result := true</l>
+<l>     disp_message (WindowHandle, '橡胶垫OK', 'image', 12, 12, 'green', 'true')   </l>
+<l>     dump_window_image (Image1,WindowHandle )       </l>
+<l>else</l>
+<l>     disp_obj (Image,WindowHandle)</l>
+<l>     Detect_result := false</l>
+<l>     disp_message (WindowHandle,'橡胶垫NG', 'image', 12, 12, 'red', 'true')     </l>
+<l>     dump_window_image (Image1,WindowHandle )</l>
+<l>endif     </l>
+<c>*    </c>
+<l>catch (Exception)</l>
+<l>     disp_message (WindowHandle, '橡胶垫NG', 'image', 12, 12, 'red', 'true')</l>
+<l>     dump_window_image (Image1,WindowHandle )</l>
+<l>endtry</l>
+<l>return ()</l>
+<c as_id="matching" as_name="Matching 01" as_grp="[12]" as_ord="4"></c>
+<c></c>
+</body>
+<docu id="M_OP80_Defect">
+<parameters>
+<parameter id="Detect_result">
+<default_type>real</default_type>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Image"/>
+<parameter id="Image1"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

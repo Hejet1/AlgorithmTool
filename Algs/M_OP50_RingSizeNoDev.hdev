@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>S1:=[]</l>
+<l>dev_get_window (WindowHandle)</l>
+<l>S2:=[]</l>
+<l>list_files ('.', ['files','follow_links'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,3]" as_ord="1">tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,2]" as_ord="1">for Index := 0 to |ImageFiles| - 1 by 1</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,3]" as_ord="1">    read_image (Image, 'F:/HD2423/Pic_2023_07_26_085946_7.bmp')</l>
+<l>    M_OP50_RingSize (Image, Image1, Inner, Outer, D)</l>
+<l>*     S1:=[S1,Inner]</l>
+<l>*     S2:=[S2,D]</l>
+<l>*     x1:=max(S1)-min(S1)</l>
+<l>*     x2:=max(S2)-min(S2)</l>
+<l>   stop()</l>
+<l>endfor</l>
+<c></c>
+<l>* tuple_remove (S1,1, Reduced)</l>
+<l>* remove_obj (Image1, ObjectsReduced, Reduced)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>* S1:=[0,4,512,6,4,6,0,3,0,2,6,0,7,43,0]</l>
+<l>* for Index1 := 0 to |S1|-1 by 1</l>
+<l>*     if (S1[Index1]&lt;5)</l>
+<l>*         S1[Index1]:=0</l>
+<l>*     endif</l>
+<l>* endfor</l>
+<l>* tuple_find (S1, 0, Indices)</l>
+<l>* tuple_remove (S1, Indices, Reduced1)</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="M_OP50_RingSize">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Image1" base_type="iconic" dimension="0"/>
+</oo>
+<oc>
+<par name="Inner" base_type="ctrl" dimension="0"/>
+<par name="Outer" base_type="ctrl" dimension="0"/>
+<par name="D" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c></c>
+<l>D:=[]</l>
+<l>A:=[]</l>
+<l>D1:=[]</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>open_window (0, 0, Width, Height, 0, 'invisible', '', WindowHandle)</l>
+<l>set_colored (WindowHandle, 12)</l>
+<l>    scale_image_range (Image, Image11, 100, 255)</l>
+<c>    *内径测量</c>
+<l>    create_metrology_model (MetrologyHandle)</l>
+<l>     add_metrology_object_ellipse_measure (MetrologyHandle, 1788.52000000, 2700.38000000, 1.32865000, 1315, 1300, 150, 15,6, 50, [], [], Index2)   </l>
+<c>  </c>
+<l>    set_metrology_object_param (MetrologyHandle, 'all', 'measure_transition', 'negative')</l>
+<l>    set_metrology_object_param (MetrologyHandle, 'all', 'num_measures', 150)</l>
+<l>      set_metrology_object_param (MetrologyHandle, 'all', 'measure_select', 'last')</l>
+<c>  </c>
+<l>    set_metrology_object_param (MetrologyHandle, 'all', 'num_instances', 1)</l>
+<c></c>
+<l>    set_metrology_object_param (MetrologyHandle, 'all', 'min_score', 0.01)</l>
+<l>    apply_metrology_model (Image11, MetrologyHandle)</l>
+<c>  </c>
+<l>    get_metrology_object_measures (Contours, MetrologyHandle, 'all', 'all', Row, Column)</l>
+<l>    gen_cross_contour_xld (Cross, Row, Column, 100, 0.785398)</l>
+<l>*     get_metrology_object_result_contour (Contour, MetrologyHandle, 'all', 'all', 1.5)</l>
+<l>    gen_contour_polygon_xld (Contour2, Row, Column)</l>
+<l>    fit_ellipse_contour_xld (Contour2, 'fitzgibbon', -1, 0, 0, 200, 3, 2, Row2, Column2, Phi, Radius1, Radius2, StartPhi, EndPhi, PointOrder)</l>
+<l>    gen_ellipse (Ellipse1, Row2, Column2, Phi, Radius1, Radius2)</l>
+<l>   gen_contour_region_xld (Ellipse1, Contours3, 'border')</l>
+<c></c>
+<c>    </c>
+<c>    </c>
+<l>    create_metrology_model (MetrologyHandle1)</l>
+<l>    add_metrology_object_ellipse_measure (MetrologyHandle1, 1803.05000000, 2700.29000000, 1.32865000, 1619.81000000, 1639.80000000, 150, 15, 5, 80, [], [], Index3)</l>
+<c>   </c>
+<l>    set_metrology_object_param (MetrologyHandle1, 'all', 'measure_transition', 'positive')</l>
+<l>    set_metrology_object_param (MetrologyHandle1, 'all', 'num_measures',150)</l>
+<l>     set_metrology_object_param (MetrologyHandle1, 'all', 'measure_select', 'first')</l>
+<c></c>
+<l>    set_metrology_object_param (MetrologyHandle1, 'all', 'num_instances', 1)</l>
+<c>  </c>
+<l>    set_metrology_object_param (MetrologyHandle1, 'all', 'min_score', 0.01)</l>
+<l>    apply_metrology_model (Image11, MetrologyHandle1)</l>
+<c> </c>
+<l>    get_metrology_object_measures (Contours1, MetrologyHandle1, 'all', 'all', Row1, Column1)</l>
+<l>    gen_cross_contour_xld (Cross1, Row1, Column1, 100, 0.785398)</l>
+<l>    gen_contour_polygon_xld (Contour2, Row1, Column1)</l>
+<l>    fit_ellipse_contour_xld (Contour2, 'fitzgibbon', -1, 0, 0, 200, 3, 2, Row3, Column3, Phi1, Radius3, Radius4, StartPhi, EndPhi, PointOrder)</l>
+<l>    gen_ellipse (Ellipse2, Row3, Column3, Phi1, Radius3, Radius4)</l>
+<l>    gen_contour_region_xld (Ellipse2, Contours4, 'border')</l>
+<c>    *线径测量</c>
+<l>     gen_cross_contour_xld (Cross2, Row3, Column3, 100, rad(45))</l>
+<l>     gen_empty_obj (Lines)</l>
+<l>     gen_empty_obj (Crossn)</l>
+<l>     gen_empty_obj (Crossn1)</l>
+<l>     gen_empty_obj (Rec)</l>
+<l>     for Indexrow := 0 to |Row1|-1 by 1</l>
+<l>*      gen_region_line (RegionLines, Row1[Indexrow], Column1[Indexrow], 1785.62, 2709.98)</l>
+<c></c>
+<l>     gen_region_line (RegionLines, Row1[Indexrow], Column1[Indexrow], Row3, Column3)</l>
+<l>     angle_ll (Row1[Indexrow], Column1[Indexrow], Row3, Column3, 2266,2456, 2266,2567, Angle)</l>
+<l>     A:=[A,Angle]</l>
+<l>     gen_contour_region_xld (RegionLines, Contours, 'border')</l>
+<l>     elliptic_axis_points_xld (Contours, Ra3, Rb3, Phi)</l>
+<l>     area_center_points_xld (Contours, Area4, RowCenter, ColCenter)</l>
+<c></c>
+<l>*      LineLength:=1000</l>
+<l>      q:=deg(A[Indexrow])</l>
+<l>     if (q&gt;0 and q&lt;90)</l>
+<l>        RowStart := RowCenter-cos(Phi+1.5708)*850</l>
+<l>        ColStart := ColCenter-sin(Phi+1.5708)*850</l>
+<l>        RowEnd := RowCenter+cos(Phi-1.5708)*450</l>
+<l>        ColEnd := ColCenter+sin(Phi-1.5708)*450</l>
+<l>        gen_region_line (Line2, RowStart, ColStart, RowEnd, ColEnd)</l>
+<l>        AmplitudeThreshold := 34</l>
+<l>        RoiWidthLen2 := 7.5</l>
+<l>        set_system ('int_zooming', 'true')</l>
+<l>        LineRowStart_Measure_01_0 := RowStart</l>
+<l>        LineColumnStart_Measure_01_0 := ColStart</l>
+<l>        LineRowEnd_Measure_01_0 := RowEnd</l>
+<l>        LineColumnEnd_Measure_01_0 := ColEnd</l>
+<l>        TmpCtrl_Row := 0.5*(LineRowStart_Measure_01_0+LineRowEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Column := 0.5*(LineColumnStart_Measure_01_0+LineColumnEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Dr := LineRowStart_Measure_01_0-LineRowEnd_Measure_01_0</l>
+<l>        TmpCtrl_Dc := LineColumnEnd_Measure_01_0-LineColumnStart_Measure_01_0</l>
+<l>        TmpCtrl_Phi := atan2(TmpCtrl_Dr, TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len1 := 0.5*sqrt(TmpCtrl_Dr*TmpCtrl_Dr + TmpCtrl_Dc*TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len2 := RoiWidthLen2</l>
+<l>        gen_measure_rectangle2 (TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2, 5472, 3648, 'nearest_neighbor', MsrHandle_Measure_01_0)</l>
+<l>        gen_rectangle2 (Rectangle, TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+7.5)</l>
+<l>        copy_obj (Image, Image, 1, 1)</l>
+<l>        measure_pairs (Image, MsrHandle_Measure_01_0, 6.5, AmplitudeThreshold, 'negative_strongest', 'last', Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, Width_Measure_01_0, Distance_Measure_01_0)</l>
+<l>        gen_cross_contour_xld (Cross3, Row1_Measure_01_0, Column1_Measure_01_0, 100, rad(45))</l>
+<l>        gen_cross_contour_xld (Cross4, Row2_Measure_01_0, Column2_Measure_01_0, 100, rad(45))</l>
+<l>        concat_obj (Cross4, Cross3, Crossn)</l>
+<l>        concat_obj (Crossn1, Crossn, Crossn1)</l>
+<l>        concat_obj (Rec, Rectangle, Rec)</l>
+<l>        D1:=[D1,Width_Measure_01_0]</l>
+<l>        concat_obj (Lines, Line2, Lines)</l>
+<l>     elseif (q&lt;0 and q&gt;-90)</l>
+<l>        RowStart := RowCenter-cos(Phi+1.5708)*850</l>
+<l>        ColStart := ColCenter-sin(Phi+1.5708)*850</l>
+<l>        RowEnd := RowCenter+cos(Phi-1.5708)*450</l>
+<l>        ColEnd := ColCenter+sin(Phi-1.5708)*450 </l>
+<l>        gen_region_line (Line2, RowStart, ColStart, RowEnd, ColEnd)</l>
+<l>        AmplitudeThreshold := 34</l>
+<l>        RoiWidthLen2 := 7.5</l>
+<l>        set_system ('int_zooming', 'true')</l>
+<l>        LineRowStart_Measure_01_0 := RowStart</l>
+<l>        LineColumnStart_Measure_01_0 := ColStart</l>
+<l>        LineRowEnd_Measure_01_0 := RowEnd</l>
+<l>        LineColumnEnd_Measure_01_0 := ColEnd</l>
+<l>        TmpCtrl_Row := 0.5*(LineRowStart_Measure_01_0+LineRowEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Column := 0.5*(LineColumnStart_Measure_01_0+LineColumnEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Dr := LineRowStart_Measure_01_0-LineRowEnd_Measure_01_0</l>
+<l>        TmpCtrl_Dc := LineColumnEnd_Measure_01_0-LineColumnStart_Measure_01_0</l>
+<l>        TmpCtrl_Phi := atan2(TmpCtrl_Dr, TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len1 := 0.5*sqrt(TmpCtrl_Dr*TmpCtrl_Dr + TmpCtrl_Dc*TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len2 := RoiWidthLen2</l>
+<l>        gen_measure_rectangle2 (TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+17.5, 5472, 3648, 'nearest_neighbor', MsrHandle_Measure_01_0)</l>
+<l>        gen_rectangle2 (Rectangle, TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+7.5)</l>
+<l>        copy_obj (Image, Image, 1, 1)</l>
+<l>        measure_pairs (Image, MsrHandle_Measure_01_0, 6.5, AmplitudeThreshold, 'negative_strongest', 'last', Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, Width_Measure_01_0, Distance_Measure_01_0)</l>
+<l>        gen_cross_contour_xld (Cross3, Row1_Measure_01_0, Column1_Measure_01_0, 100, rad(45))</l>
+<l>        gen_cross_contour_xld (Cross4, Row2_Measure_01_0, Column2_Measure_01_0, 100, rad(45))</l>
+<l>        concat_obj (Cross4, Cross3, Crossn)</l>
+<l>        concat_obj (Crossn1, Crossn, Crossn1)</l>
+<l>        concat_obj (Rec, Rectangle, Rec)</l>
+<l>        D1:=[D1,Width_Measure_01_0]</l>
+<l>        concat_obj (Lines, Line2, Lines)</l>
+<l>     elseif (q&gt;90 and q&lt;180)</l>
+<l>        RowStart := RowCenter+cos(Phi+1.5708)*450</l>
+<l>        ColStart := ColCenter+sin(Phi+1.5708)*450</l>
+<l>        RowEnd := RowCenter-cos(Phi-1.5708)*850</l>
+<l>        ColEnd := ColCenter-sin(Phi-1.5708)*850</l>
+<l>        gen_region_line (Line2, RowStart, ColStart, RowEnd, ColEnd)</l>
+<l>        AmplitudeThreshold := 34</l>
+<l>        RoiWidthLen2 := 7.5</l>
+<l>        set_system ('int_zooming', 'true')</l>
+<l>        LineRowStart_Measure_01_0 := RowStart</l>
+<l>        LineColumnStart_Measure_01_0 := ColStart</l>
+<l>        LineRowEnd_Measure_01_0 := RowEnd</l>
+<l>        LineColumnEnd_Measure_01_0 := ColEnd</l>
+<l>        TmpCtrl_Row := 0.5*(LineRowStart_Measure_01_0+LineRowEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Column := 0.5*(LineColumnStart_Measure_01_0+LineColumnEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Dr := LineRowStart_Measure_01_0-LineRowEnd_Measure_01_0</l>
+<l>        TmpCtrl_Dc := LineColumnEnd_Measure_01_0-LineColumnStart_Measure_01_0</l>
+<l>        TmpCtrl_Phi := atan2(TmpCtrl_Dr, TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len1 := 0.5*sqrt(TmpCtrl_Dr*TmpCtrl_Dr + TmpCtrl_Dc*TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len2 := RoiWidthLen2</l>
+<l>        gen_measure_rectangle2 (TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+17.5, 5472, 3648, 'nearest_neighbor', MsrHandle_Measure_01_0)</l>
+<l>        gen_rectangle2 (Rectangle, TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+7.5)</l>
+<l>        copy_obj (Image, Image, 1, 1)</l>
+<l>        measure_pairs (Image, MsrHandle_Measure_01_0, 6.5, AmplitudeThreshold, 'negative_strongest', 'last', Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, Width_Measure_01_0, Distance_Measure_01_0)</l>
+<l>        gen_cross_contour_xld (Cross3, Row1_Measure_01_0, Column1_Measure_01_0, 100, rad(45))</l>
+<l>        gen_cross_contour_xld (Cross4, Row2_Measure_01_0, Column2_Measure_01_0, 100, rad(45))</l>
+<l>        concat_obj (Cross4, Cross3, Crossn)</l>
+<l>        concat_obj (Crossn1, Crossn, Crossn1)</l>
+<l>        concat_obj (Rec, Rectangle, Rec)</l>
+<l>        D1:=[D1,Width_Measure_01_0]</l>
+<l>        concat_obj (Lines, Line2, Lines)</l>
+<l>     else</l>
+<l>        RowStart := RowCenter+cos(Phi+1.5708)*450</l>
+<l>        ColStart := ColCenter+sin(Phi+1.5708)*450</l>
+<l>        RowEnd := RowCenter-cos(Phi-1.5708)*850</l>
+<l>        ColEnd := ColCenter-sin(Phi-1.5708)*850</l>
+<l>        gen_region_line (Line2, RowStart, ColStart, RowEnd, ColEnd)</l>
+<l>        AmplitudeThreshold := 34</l>
+<l>        RoiWidthLen2 := 7.5</l>
+<l>        set_system ('int_zooming', 'true')</l>
+<l>        LineRowStart_Measure_01_0 := RowStart</l>
+<l>        LineColumnStart_Measure_01_0 := ColStart</l>
+<l>        LineRowEnd_Measure_01_0 := RowEnd</l>
+<l>        LineColumnEnd_Measure_01_0 := ColEnd</l>
+<l>        TmpCtrl_Row := 0.5*(LineRowStart_Measure_01_0+LineRowEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Column := 0.5*(LineColumnStart_Measure_01_0+LineColumnEnd_Measure_01_0)</l>
+<l>        TmpCtrl_Dr := LineRowStart_Measure_01_0-LineRowEnd_Measure_01_0</l>
+<l>        TmpCtrl_Dc := LineColumnEnd_Measure_01_0-LineColumnStart_Measure_01_0</l>
+<l>        TmpCtrl_Phi := atan2(TmpCtrl_Dr, TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len1 := 0.5*sqrt(TmpCtrl_Dr*TmpCtrl_Dr + TmpCtrl_Dc*TmpCtrl_Dc)</l>
+<l>        TmpCtrl_Len2 := RoiWidthLen2</l>
+<l>        gen_measure_rectangle2 (TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+17.5, 5472, 3648, 'nearest_neighbor', MsrHandle_Measure_01_0)</l>
+<l>        gen_rectangle2 (Rectangle, TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2+7.5)</l>
+<l>        copy_obj (Image, Image, 1, 1)</l>
+<l>        measure_pairs (Image, MsrHandle_Measure_01_0, 6.5, AmplitudeThreshold, 'negative_strongest', 'last', Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, Width_Measure_01_0, Distance_Measure_01_0)</l>
+<l>        gen_cross_contour_xld (Cross3, Row1_Measure_01_0, Column1_Measure_01_0, 100, rad(45))</l>
+<l>        gen_cross_contour_xld (Cross4, Row2_Measure_01_0, Column2_Measure_01_0, 100, rad(45))</l>
+<l>        concat_obj (Cross4, Cross3, Crossn)</l>
+<l>        concat_obj (Crossn1, Crossn, Crossn1)</l>
+<l>        concat_obj (Rec, Rectangle, Rec)</l>
+<l>        D1:=[D1,Width_Measure_01_0]</l>
+<l>        concat_obj (Lines, Line2, Lines)</l>
+<l>     endif</l>
+<c>     </c>
+<l>*      dev_display (Image)</l>
+<c>     </c>
+<c as_id="measure1d" as_name="Measure 01" as_grp="[1,1]" as_ord="1">  </c>
+<l>     endfor</l>
+<l>*      stop()</l>
+<l>*     gen_contour_polygon_xld (Contour2, Row1, Column1)</l>
+<l>*     fit_ellipse_contour_xld (Contour2, 'fitzgibbon', -1, 0, 0, 200, 3, 2, Row2, Column2, Phi, Radius1, Radius2, StartPhi, EndPhi, PointOrder)</l>
+<l>*     gen_ellipse (Ellipse, Row2, Column2, Phi, Radius1, Radius2)</l>
+<c>    </c>
+<l>    inner:=(Radius1+Radius2)/2*0.085295980561733/5</l>
+<l>    outer:=(Radius3+Radius4)/2*0.085295980561733/5</l>
+<l>    Inner:=inner</l>
+<l>    Outer:=outer</l>
+<l>*    stop()</l>
+<l>for Index1 := 0 to |D1|-1 by 1</l>
+<l>    if (D1[Index1]&lt;305 or D1[Index1]&gt;315 )</l>
+<l>        D1[Index1]:=0</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>tuple_find (D1, 0, Indices)</l>
+<l>tuple_remove (D1, Indices, Reduced1)</l>
+<l>* stop()</l>
+<l>    D:=mean(Reduced1)*0.085295980561733/5/2</l>
+<c></c>
+<l>*     S1:=[S1,inner]</l>
+<l>*     S2:=[S2,D]</l>
+<l>*     x1:=max(S1)-min(S1)</l>
+<l>*     x2:=max(S2)-min(S2)</l>
+<l>    set_display_font (WindowHandle, Width/50, 'mono', 'true', 'false')</l>
+<l>    gen_region_contour_xld (Contours3, Region1, 'margin')</l>
+<l>    gen_region_contour_xld (Contours4, Region2, 'margin')</l>
+<l>    set_part (WindowHandle, 0, 0, Height, Width)</l>
+<c>    </c>
+<c></c>
+<l>    disp_obj (Image, WindowHandle)</l>
+<l>    disp_obj (Contours3, WindowHandle)</l>
+<l>    disp_obj (Contours4, WindowHandle)</l>
+<l>*      dev_display (Image) </l>
+<l>*      dev_display (Contours3)</l>
+<l>*      dev_display (Contours4)</l>
+<l>    if (inner&gt;22.1 and inner&lt;22.7 and D&lt;2.73 and D&gt;2.57)</l>
+<l>        disp_message (WindowHandle, 'OK'+'\r\n'+ '内直径为：'+inner+'\r\n'+'外直径为：'+outer+'\r\n'+'线径为：'+D, 'image', 12, 12, 'green', 'true')</l>
+<c> </c>
+<l>    else</l>
+<l>        disp_message (WindowHandle, 'NG'+'\r\n'+ '内直径为：'+inner+'\r\n'+'外直径为：'+outer+'\r\n'+'线径为：'+D, 'image', 12, 12, 'red', 'true')</l>
+<l>    endif</l>
+<c>    </c>
+<l>    dump_window_image (Image1, WindowHandle)</l>
+<l>return ()</l>
+</body>
+<docu id="M_OP50_RingSize">
+<parameters>
+<parameter id="D">
+<default_type>real</default_type>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Image"/>
+<parameter id="Image1"/>
+<parameter id="Inner">
+<default_type>real</default_type>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Outer">
+<default_type>real</default_type>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

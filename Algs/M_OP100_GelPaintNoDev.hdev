@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,2]" as_ord="1">list_files ('.', ['files','follow_links'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[1,3]" as_ord="1">tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles)</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,2]" as_ord="1">for Index := 0 to |ImageFiles| - 1 by 1</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[2,3]" as_ord="1">    read_image (Image, 'F:/HD2423/未涂.bmp')</l>
+<l>    M_OP100_GelPaint (Image, Image1, Area)</l>
+<l>stop()</l>
+<l as_id="image_acquisition" as_name="Image Acquisition 01" as_grp="[3,1]" as_ord="1">endfor</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="M_OP100_GelPaint">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Image1" base_type="iconic" dimension="0"/>
+</oo>
+<oc>
+<par name="Area" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>get_image_size (Image, Width1, Height1)</l>
+<l>open_window (0, 0, Width1, Height1, 0, 'invisible', '', WindowHandle)</l>
+<l>set_colored (WindowHandle, 12)</l>
+<l>dump_window_image (Image11, WindowHandle)</l>
+<l>get_image_size (Image11, Width, Height)</l>
+<l>gen_empty_obj (ObjectsConcat)</l>
+<l>for Index1 := 1 to 8 by 1</l>
+<l>    if (Index1=1)</l>
+<l>      gen_circle (ROI, 394.967, 1456.77, 100)</l>
+<l>    elseif (Index1=2)</l>
+<l>      gen_circle (ROI, 1019.78, 1886.73, 100)</l>
+<l>    elseif (Index1=3)</l>
+<l>      gen_circle (ROI, 1562.77, 1676.33, 100)</l>
+<l>    elseif (Index1=4)</l>
+<l>      gen_circle (ROI, 1652.03, 732.253, 100)</l>
+<l>    elseif (Index1=5)</l>
+<l>      gen_circle (ROI, 1074.33, 384.63, 100)</l>
+<l>    elseif (Index1=6)</l>
+<l>      gen_circle (ROI, 466.87, 668.217, 100)</l>
+<l>    elseif (Index1=7)</l>
+<l>      gen_circle (ROI, 375.132, 926.191, 100)</l>
+<l>    elseif (Index1=8)</l>
+<l>      gen_circle (ROI, 1091.68, 1090.25, 100)        </l>
+<l>    endif</l>
+<l>reduce_domain (Image, ROI, ImageReduced2)</l>
+<l>decompose3 (ImageReduced2, RED, GREEN, BLUE)</l>
+<l>trans_from_rgb (RED, GREEN, BLUE, ImageResult1, ImageResult2, ImageResult3, 'hsv')</l>
+<l>threshold (ImageResult2, Region, 100, 255)</l>
+<l>connection (Region, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 7000, 99999)</l>
+<l>concat_obj (ObjectsConcat, SelectedRegions, ObjectsConcat)</l>
+<l>endfor</l>
+<l>set_part (WindowHandle, 0, 0, Height1-1, Width1-1)</l>
+<l>disp_obj (Image, WindowHandle)</l>
+<l>disp_obj (ObjectsConcat, WindowHandle)</l>
+<l>area_center (ObjectsConcat, Area, Row, Column)</l>
+<l>set_display_font (WindowHandle, Width/60, 'mono', 'true', 'false')</l>
+<l>if (|Area|!=8)</l>
+<l>    set_display_font (WindowHandle, Width/30, 'mono', 'true', 'false')</l>
+<l>    disp_message (WindowHandle, '涂胶点位数量或位置错误，数量为：'+|Area|, 'image', 12, 12, 'red', 'true')</l>
+<l>    set_display_font (WindowHandle, Width/60, 'mono', 'true', 'false')</l>
+<l>    for Index2 := 0 to |Area|-1 by 1</l>
+<l>        if (Area[Index2]&gt;15000)</l>
+<l>            disp_message (WindowHandle, 'OK'+'\r\n'+Area[Index2], 'image', Row[Index2], Column[Index2]+100, 'green', 'true')</l>
+<l>        else</l>
+<l>            disp_message (WindowHandle, 'NG'+'\r\n'+Area[Index2], 'image', Row[Index2], Column[Index2]+100, 'red', 'true')</l>
+<l>        endif</l>
+<l>    endfor</l>
+<l>    Area:=0</l>
+<l>    dump_window_image (Image1, WindowHandle)</l>
+<l>    return ()</l>
+<l>endif</l>
+<l>for Index2 := 0 to |Area|-1 by 1</l>
+<l>    if (Area[Index2]&gt;15000)</l>
+<l>        disp_message (WindowHandle, 'OK'+'\r\n'+Area[Index2], 'image', Row[Index2], Column[Index2]+100, 'green', 'true')</l>
+<l>    else</l>
+<l>        disp_message (WindowHandle, 'NG'+'\r\n'+Area[Index2], 'image', Row[Index2], Column[Index2]+100, 'red', 'true')</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>tuple_sum (Area, Sum)</l>
+<l>set_display_font (WindowHandle, Width/30, 'mono', 'true', 'false')</l>
+<l>disp_message (WindowHandle, '总涂胶面积：'+Sum, 'image', 12, 12, 'green', 'true')</l>
+<l>Area:=Sum</l>
+<l>dump_window_image (Image1, WindowHandle)</l>
+<l>return ()</l>
+</body>
+<docu id="M_OP100_GelPaint">
+<parameters>
+<parameter id="Area">
+<default_type>real</default_type>
+<sem_type>real</sem_type>
+<type_list>
+<item>real</item>
+</type_list>
+</parameter>
+<parameter id="Image"/>
+<parameter id="Image1"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
