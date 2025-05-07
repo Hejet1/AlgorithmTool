@@ -6,6 +6,7 @@
 #include <halconcpp/HalconCpp.h>
 #include <QLineEdit>
 #include "toolbox.h"
+#include "test.h"
 
 using namespace HalconCpp;
 using namespace HDevEngineCpp;
@@ -39,5 +40,12 @@ void MainWindow::on_PythonAlgorithmTool_clicked()
 {
     toolbox *tool = new toolbox("Python",this);
     tool->exec();
+}
+
+
+void MainWindow::on_pushButton_clicked()
+{
+    test *test1 = new test(this);
+    test1->exec();
 }
 

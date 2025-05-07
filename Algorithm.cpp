@@ -1,4 +1,3 @@
-#include <Algorithm.h>
 #include <QMessageBox>
 #include <QDebug>
 #include <halconcpp/HalconCpp.h>

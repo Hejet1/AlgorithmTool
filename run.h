@@ -10,10 +10,13 @@ class Run
 {
 public:
     Run();
-    void run (QString ProcName,cv::Mat Image);
+    void run (QString ProcName,QList<cv::Mat> Image,QList <QString> &CtrlResults,QList <cv::Mat> &IconicResults);
 
 private:
     QString m_ProcName,m_ProgramPath,m_ProcType;
+    std::list<std::string> CtrlInputParams;
+    QList <QString> TypeList;
+    bool IsRunSucess;
 
 };
 

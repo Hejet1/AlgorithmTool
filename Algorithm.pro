@@ -17,6 +17,7 @@ SOURCES += \
     my_thread_impl.cpp \
     qhalconwindow.cpp \
     run.cpp \
+    test.cpp \
     toolbox.cpp
 
 HEADERS += \
@@ -27,11 +28,13 @@ HEADERS += \
     my_thread_impl.h \
     qhalconwindow.h \
     run.h \
+    test.h \
     toolbox.h
 
 FORMS += \
     algorithmparam.ui \
     mainwindow.ui \
+    test.ui \
     toolbox.ui
 
 # Default rules for deployment.

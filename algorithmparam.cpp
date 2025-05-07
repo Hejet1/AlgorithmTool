@@ -547,23 +547,22 @@ void AlgorithmParam::on_RunProcedureButton_clicked()
                 SelectObj(IconicOutputParamsData,&SelectedObj,i+1);
                 WriteImage(SelectedObj,"jpg",0,"D:/QtAlgorithm/Algorithm/outimage.jpg");
                 loadAndDisplayImage("D:/QtAlgorithm/Algorithm/outimage.jpg");
-
-                // 获取输出控制参数数值类型为real，字符串类型为string
-                int i1 = 0;
-                for (const std::string& paramName : m_CtrlOutputParams)
+            }
+            // 获取输出控制参数数值类型为real，字符串类型为string
+            int i1 = 0;
+            for (const std::string& paramName : m_CtrlOutputParams)
+            {
+                if(TypeList[i1] == "string")
                 {
-                    if(TypeList[i1] == "string")
-                    {
-                        QString CtrlOutputParam = QString(CtrlOutputParamsData[i1].S());
-                        updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
-                        i1=i1+1;
-                    }
-                    else if(TypeList[i1] == "real")
-                    {
-                        QString CtrlOutputParam = QString::number(CtrlOutputParamsData[i1].D());
-                        updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
-                        i1=i1+1;
-                    }
+                    QString CtrlOutputParam = QString(CtrlOutputParamsData[i1].S());
+                    updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
+                    i1=i1+1;
+                }
+                else if(TypeList[i1] == "real")
+                {
+                    QString CtrlOutputParam = QString::number(CtrlOutputParamsData[i1].D());
+                    updateControlOutputResult(QString::fromStdString(paramName),CtrlOutputParam);
+                    i1=i1+1;
                 }
             }
         }

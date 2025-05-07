@@ -24,6 +24,8 @@ private slots:
 
     void on_PythonAlgorithmTool_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     HalconCpp::HTuple m_hvHandle,hvImageHeight,hvImageWidth;
