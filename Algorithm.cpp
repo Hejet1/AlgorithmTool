@@ -85,7 +85,6 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         if (!Py_IsInitialized()) {
             InitializePython();// 初始化Python解释器
         }
-        qDebug() << "Python interpreter path:" << Py_GetProgramName();
         if (!Py_IsInitialized()) {
             QMessageBox::critical(nullptr, "Error", "Python Initialize Failed");
             return;
@@ -107,7 +106,6 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         if (!pModule) {
             PyErr_Print();
             QMessageBox::critical(nullptr, "Error", "Can Not Import PythonModule");
-            Py_FinalizeEx();
             return;
         }
 
@@ -279,7 +277,6 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     if (!pModule) {
         PyErr_Print();
         QMessageBox::critical(nullptr, "Error", "Can Not Import PythonModule");
-        Py_FinalizeEx();
         return;
     }
 

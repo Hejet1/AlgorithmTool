@@ -10,7 +10,10 @@
 #include <QProcess>
 #include <opencv2/opencv.hpp>
 extern "C" {
+#pragma push_macro("slots")
+#undef slots
 #include <Python.h>
+#pragma pop_macro("slots")
 #include <numpy/arrayobject.h>
 }
 Q_DECLARE_METATYPE(cv::Mat)
