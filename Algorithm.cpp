@@ -1,14 +1,4 @@
-#include <QMessageBox>
-#include <QDebug>
-#include <halconcpp/HalconCpp.h>
-#include <hdevengine/HDevEngineCpp.h>
-#include <QFileDialog>
 #include "Algorithm.h"
-#include <QDebug>
-#include <QProcess>
-#include <QFileSystemWatcher>
-#include "my_hdevoperatorimpl.h"
-
 using namespace std;
 using namespace HalconCpp;
 using namespace HDevEngineCpp;

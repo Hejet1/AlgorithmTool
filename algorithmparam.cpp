@@ -1,20 +1,5 @@
 #include "algorithmparam.h"
 #include "ui_algorithmparam.h"
-#include <QLineEdit>
-#include <QLabel>
-#include <QPushButton>
-#include <QFileDialog>
-#include <QHeaderView>
-#include <QDebug>
-#include <Algorithm.h>
-#include <halconcpp/HalconCpp.h>
-#include <QVBoxLayout>
-#include <QMessageBox>
-#include <toolbox.h>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QFile>
 
 Algorithm Alg;
 using namespace HalconCpp;

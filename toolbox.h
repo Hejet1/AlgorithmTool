@@ -3,6 +3,19 @@
 #include <QLineEdit>
 #include <QToolButton>
 #include <QFileDialog>
+#include <Algorithm.h>
+#include <halconcpp/HalconCpp.h>
+#include <QLineEdit>
+#include <QHBoxLayout>
+#include <QUuid>
+#include <QToolButton>
+#include <QDebug>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QFile>
+#include <QMessageBox>
+#include <algorithmparam.h>
 namespace Ui {
 class toolbox;
 }

@@ -1,18 +1,5 @@
 #include "toolbox.h"
 #include "ui_toolbox.h"
-#include <algorithmparam.h>
-#include <Algorithm.h>
-#include <halconcpp/HalconCpp.h>
-#include <QLineEdit>
-#include <QHBoxLayout>
-#include <QUuid>
-#include <QToolButton>
-#include <QDebug>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QFile>
-#include <QMessageBox>
 using namespace HalconCpp;
 using namespace HDevEngineCpp;
 using namespace std;

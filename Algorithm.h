@@ -1,6 +1,15 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
+#include <QMessageBox>
+#include <QDebug>
+#include <halconcpp/HalconCpp.h>
+#include <hdevengine/HDevEngineCpp.h>
+#include <QFileDialog>
+#include <QDebug>
+#include <QProcess>
+#include <QFileSystemWatcher>
+#include "my_hdevoperatorimpl.h"
 #include <QObject>
 #include <list>
 #include <halconcpp/HalconCpp.h>

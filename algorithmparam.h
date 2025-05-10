@@ -2,6 +2,21 @@
 #include <halconcpp/HalconCpp.h>
 #include <qhalconwindow.h>
 #include <QLineEdit>
+#include <QLineEdit>
+#include <QLabel>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QHeaderView>
+#include <QDebug>
+#include <Algorithm.h>
+#include <halconcpp/HalconCpp.h>
+#include <QVBoxLayout>
+#include <QMessageBox>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QFile>
+
 using namespace std;
 
 namespace Ui {

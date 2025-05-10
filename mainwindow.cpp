@@ -1,12 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QVBoxLayout>
-#include <QFileDialog>
-#include <Algorithm.h>
-#include <halconcpp/HalconCpp.h>
-#include <QLineEdit>
-#include "toolbox.h"
-#include "test.h"
 
 using namespace HalconCpp;
 using namespace HDevEngineCpp;

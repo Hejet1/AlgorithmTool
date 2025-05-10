@@ -4,6 +4,14 @@
 #include <QMainWindow>
 #include <qhalconwindow.h>
 #include <QTableWidget>
+#include <QApplication>
+#include <QVBoxLayout>
+#include <QFileDialog>
+#include <Algorithm.h>
+#include <halconcpp/HalconCpp.h>
+#include <QLineEdit>
+#include "toolbox.h"
+#include "test.h"
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
