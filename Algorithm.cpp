@@ -236,7 +236,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
         InitializePython();// 初始化Python解释器
     }
 
-    qDebug() << "Python interpreter path:" << Py_GetProgramName();
+    QString PythonHome = QString::fromWCharArray(Py_GetPythonHome()) ;
+    qDebug() << "Python interpreter path:" << PythonHome;
     if (!Py_IsInitialized()) {
         QMessageBox::critical(nullptr, "Error", "Python Initialize Failed");
         return;
