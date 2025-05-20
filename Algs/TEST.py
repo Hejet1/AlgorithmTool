@@ -1,4 +1,4 @@
-import cv2 as cv
+import cv as cv
 import numpy as np
 
 #参数结构体

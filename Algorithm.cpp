@@ -15,6 +15,38 @@ int InitializePython()
     import_array();
     return 0;
 }
+QString getPythonTraceback() {
+    PyObject *type = nullptr, *value = nullptr, *traceback = nullptr;
+    PyErr_Fetch(&type, &value, &traceback);
+    PyErr_NormalizeException(&type, &value, &traceback);
+
+    QString errorMsg;
+    if (type && value) {
+        PyObject* tracebackModule = PyImport_ImportModule("traceback");
+        if (tracebackModule) {
+            PyObject* formatFunc = PyObject_GetAttrString(tracebackModule, "format_exception");
+            if (formatFunc && PyCallable_Check(formatFunc)) {
+                PyObject* args = PyTuple_Pack(3, type, value, traceback ? traceback : Py_None);
+                PyObject* tbList = PyObject_CallObject(formatFunc, args);
+                if (tbList) {
+                    PyObject* tbStr = PyUnicode_Join(PyUnicode_FromString(""), tbList);
+                    errorMsg = QString::fromUtf8(PyUnicode_AsUTF8(tbStr));
+                    Py_DECREF(tbStr);
+                    Py_DECREF(tbList);
+                }
+                Py_DECREF(args);
+            }
+            Py_DECREF(formatFunc);
+            Py_DECREF(tracebackModule);
+        }
+    }
+
+    Py_XDECREF(type);
+    Py_XDECREF(value);
+    Py_XDECREF(traceback);
+
+    return errorMsg;
+}
 /// <summary>
 /// 获取算子参数
 /// </summary>
@@ -94,8 +126,13 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         QString moduleName = fileInfo.baseName();
         PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
         if (!pModule) {
-            PyErr_Print();
-            QMessageBox::critical(nullptr, "Error", "Can Not Import PythonModule");
+            //PyErr_Print();
+
+            QString errorMsg = getPythonTraceback();
+
+            // 在Qt界面显示错误信息
+            qDebug() << "Python Error:" << errorMsg;
+            QMessageBox::critical(nullptr, "Error", errorMsg);
             return;
         }
 
@@ -266,8 +303,9 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     // 导入模块
     PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
     if (!pModule) {
-        PyErr_Print();
-        QMessageBox::critical(nullptr, "Error", "Can Not Import PythonModule");
+        //PyErr_Print();
+        QString errorMsg = getPythonTraceback();
+        QMessageBox::critical(nullptr, "Error", errorMsg);
         return;
     }
 
