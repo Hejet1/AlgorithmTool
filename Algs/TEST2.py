@@ -1,4 +1,4 @@
-import cv as cv
+import cv2 as cv
 import numpy as np
 
 #参数结构体
@@ -55,10 +55,7 @@ IconicOutputParamDict = {
     }
 }
 
-ImagePath1 = r"F:\HD2423\1.bmp"
-ImagePath2 = r"F:\HD2423\2.bmp"
-Image1 = cv.imread(ImagePath1)
-Image2 = cv.imread(ImagePath2)
+
 
 
 def main(Input1, Input2, Input3, Image1, Image2):
@@ -84,5 +81,9 @@ def main(Input1, Input2, Input3, Image1, Image2):
 
 
 if __name__ == "__main__":
+    ImagePath1 = r"F:\HD2423\1.bmp"
+    ImagePath2 = r"F:\HD2423\2.bmp"
+    Image1 = cv.imread(ImagePath1)
+    Image2 = cv.imread(ImagePath2)
     result = main(Input1="1", Input2="2", Input3="3", Image1=Image1, Image2=Image2)
     print(result)

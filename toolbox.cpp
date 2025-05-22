@@ -47,7 +47,10 @@ void toolbox::updateProgramPath(const QString &ProgramPath, const QString &uuid)
 /// 将界面表的数据存储到Json
 /// </summary>
 void toolbox::saveTableDataToJson() {
-    QFile file("D:/QtAlgorithm/Algorithm/saved_data.json");
+    QFile file;
+    QString filePath = ("C:/AlgorithmData/saved_data.json");
+    QDir().mkpath("C:/AlgorithmData");
+    file.setFileName(filePath);
     QJsonArray existingArray;
 
     // 读取现有文件内容
@@ -97,9 +100,11 @@ void toolbox::saveTableDataToJson() {
 /// </summary>
 void toolbox::loadTableDataFromJson()
 {
+
     QFile file;
-    // 定义保存对象类型
-    file.setFileName("D:/QtAlgorithm/Algorithm/saved_data.json");
+    QString filePath = ("C:/AlgorithmData/saved_data.json");
+    QDir().mkpath("C:/AlgorithmData");
+    file.setFileName(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "No File Saved";
         return;

@@ -10,8 +10,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    qputenv("PATH", "D:\\ProgramData\\Anaconda\\envs\\yolo;" + qgetenv("PATH"));
-    qputenv("PYTHONHOME", "D:\\ProgramData\\Anaconda\\envs\\yolo");
     Algorithm();
 
 }
@@ -24,6 +22,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_2_clicked()
 {
+
     toolbox *tool = new toolbox("Halcon",this);
     tool->exec();
 }

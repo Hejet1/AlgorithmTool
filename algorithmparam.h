@@ -16,6 +16,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
+#include <QDir>
 
 using namespace std;
 

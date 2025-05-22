@@ -7,7 +7,10 @@ Algorithm::Algorithm() {
     MyEngine = new HDevEngine();
     MyProgram = new HDevProgram();
     MyProcedure = new HDevProcedure();
-    MyProcedureCall = new HDevProcedureCall();    
+    MyProcedureCall = new HDevProcedureCall();
+    QDir().mkpath("C:/AlgorithmData");
+    qputenv("PATH", "D:\\ProgramData\\Anaconda\\envs\\yolo;" + qgetenv("PATH"));
+    qputenv("PYTHONHOME", "D:\\ProgramData\\Anaconda\\envs\\yolo");
 }
 int InitializePython()
 {
@@ -104,6 +107,13 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
     }
     else if(AlgType == "Python")
     {
+        QString PythonHome = QString::fromWCharArray(Py_GetPythonHome()) ;
+        if(PythonHome == "")
+        {
+            QMessageBox::critical(nullptr, "Error", "Python Interpreter Is Not Set");
+            return;
+        }
+        qDebug() << "Python interpreter path:" << PythonHome;
         if (!Py_IsInitialized()) {
             InitializePython();// 初始化Python解释器
         }
@@ -129,10 +139,8 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
             //PyErr_Print();
 
             QString errorMsg = getPythonTraceback();
-
-            // 在Qt界面显示错误信息
             qDebug() << "Python Error:" << errorMsg;
-            QMessageBox::critical(nullptr, "Error", errorMsg);
+            QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
             return;
         }
 
@@ -148,7 +156,7 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         for (const char* dictName : targetDicts) {
             PyObject* pDict = PyObject_GetAttrString(pModule, dictName);
             if (!pDict || !PyDict_Check(pDict)) {
-                QMessageBox::critical(nullptr, "Error", QString("Can Not Find Dictionary: %1").arg(dictName));
+                QMessageBox::critical(nullptr, "Error", QString("Can Not Find Dictionary: %1").arg(dictName),QMessageBox::Ok);
                 Py_XDECREF(pDict);
                 Py_DECREF(pModule);
                 Py_FinalizeEx();
@@ -305,7 +313,7 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     if (!pModule) {
         //PyErr_Print();
         QString errorMsg = getPythonTraceback();
-        QMessageBox::critical(nullptr, "Error", errorMsg);
+        QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
         return;
     }
 

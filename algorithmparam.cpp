@@ -235,10 +235,11 @@ void AlgorithmParam::updateControlOutputResult(const QString &name, const QStrin
 /// 从Json加载已保存的参数
 /// </summary>
 void AlgorithmParam::loadSavedParameters() {
-    QFile file;
-    QString filePath = "D:/QtAlgorithm/Algorithm/algorithmparams.json";
-    file.setFileName(filePath);
 
+    QFile file;
+    QString filePath = "C:/AlgorithmData/algorithmparams.json";
+    QDir().mkpath("C:/AlgorithmData");
+    file.setFileName(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "No saved parameter file found";
         return;
@@ -411,7 +412,8 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
 
     // 3. 写入文件
     QFile file;
-    QString filePath = "D:/QtAlgorithm/Algorithm/algorithmparams.json";
+    QString filePath = "C:/AlgorithmData/algorithmparams.json";
+    QDir().mkpath("C:/AlgorithmData");
     file.setFileName(filePath);
 
     // 读取现有数据
@@ -530,8 +532,8 @@ void AlgorithmParam::on_RunProcedureButton_clicked()
             // 获取输出图片并显示再界面上
             for (int i = 0; i < IconicOutputParamsData.CountObj(); i++) {
                 SelectObj(IconicOutputParamsData,&SelectedObj,i+1);
-                WriteImage(SelectedObj,"jpg",0,"D:/QtAlgorithm/Algorithm/outimage.jpg");
-                loadAndDisplayImage("D:/QtAlgorithm/Algorithm/outimage.jpg");
+                WriteImage(SelectedObj,"jpg",0,"C:/AlgorithmData/outimage.jpg");
+                loadAndDisplayImage("C:/AlgorithmData/outimage.jpg");
             }
             // 获取输出控制参数数值类型为real，字符串类型为string
             int i1 = 0;
@@ -637,8 +639,8 @@ void AlgorithmParam::on_RunProcedureButton_clicked()
         {
             // 获取输出图片并显示再界面上
             for (int i = 0; i < IconicOutputParamsData.size(); i++) {
-                cv::imwrite("D:/QtAlgorithm/Algorithm/outimage.jpg",IconicOutputParamsData[i]);
-                loadAndDisplayImage("D:/QtAlgorithm/Algorithm/outimage.jpg");
+                cv::imwrite("C:/AlgorithmData/outimage.jpg",IconicOutputParamsData[i]);
+                loadAndDisplayImage("C:/AlgorithmData/outimage.jpg");
 
                 // 获取输出控制参数数值类型为real，字符串类型为string
                 int i1 = 0;

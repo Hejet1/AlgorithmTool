@@ -45,26 +45,30 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 QMAKE_PROJECT_DEPTH = 0
 
 
-LIBS += -LC:/Users/Administrator/AppData/Local/Programs/MVTec/HALCON-22.05-Progress/lib/x64-win64/ -lhalcon
+LIBS += -L$$PWD/Libs/ -lhalcon
 LIBS += -lhalcon \
         -lhalconcpp \
         -lhdevenginecpp
 
-INCLUDEPATH += C:/Users/Administrator/AppData/Local/Programs/MVTec/HALCON-22.05-Progress/include
-DEPENDPATH += C:/Users/Administrator/AppData/Local/Programs/MVTec/HALCON-22.05-Progress/include
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Libs/ -lopencv_world4110
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Libs/ -lopencv_world4110d
+
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include
 
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../OpenCV/opencv/build/x64/vc16/lib/ -lopencv_world4110
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../OpenCV/opencv/build/x64/vc16/lib/ -lopencv_world4110d
+win32: LIBS += -L$$PWD/Libs/ -lnpymath
 
-INCLUDEPATH += $$PWD/../../OpenCV/opencv/build/include
-DEPENDPATH += $$PWD/../../OpenCV/opencv/build/include
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include
 
 
-win32:LIBS += -L$$PWD/../../ProgramData/Anaconda/envs/yolo/Lib/site-packages/numpy/core/lib/ -lnpymath
-INCLUDEPATH += $$PWD/../../ProgramData/Anaconda/envs/yolo/Lib/site-packages/numpy/core/include
-DEPENDPATH += $$PWD/../../ProgramData/Anaconda/envs/yolo/Lib/site-packages/numpy/core/include
+win32: LIBS += -L$$PWD/Libs/ -lpython39
 
-win32:LIBS += -L$$PWD/../../ProgramData/Anaconda/envs/yolo/libs/ -lpython39
-INCLUDEPATH += $$PWD/../../ProgramData/Anaconda/envs/yolo/include
-DEPENDPATH += $$PWD/../../ProgramData/Anaconda/envs/yolo/include
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include
+
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/Libs/python39.lib
