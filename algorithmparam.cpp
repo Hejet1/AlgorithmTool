@@ -1,4 +1,5 @@
 #include "algorithmparam.h"
+#include "qevent.h"
 #include "ui_algorithmparam.h"
 
 Algorithm Alg;
@@ -24,9 +25,22 @@ AlgorithmParam::~AlgorithmParam() {
 }
 void AlgorithmParam::closeEvent(QCloseEvent *event)
 {
-    QDialog::closeEvent(event);
-    Disp->close();
-   // Disp->GetHalconBuffer()->SetPart(-1,-1,-1,-1);
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(
+        this,
+        "Confirm Save",
+        "Is All Params Saved?",
+        QMessageBox::Yes | QMessageBox::No
+        );
+
+    if (reply == QMessageBox::Yes)
+    {
+        event->accept();
+    }
+    else
+    {
+        event->ignore();
+    }
 }
 /// <summary>
 /// 动态生成参数表格

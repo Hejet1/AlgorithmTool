@@ -320,7 +320,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     // 获取main函数
     PyObject* pFunc = PyObject_GetAttrString(pModule, "main");
     if (!pFunc || !PyCallable_Check(pFunc)) {
-        PyErr_Print();
+        QString errorMsg = getPythonTraceback();
+        QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
         qDebug() << "找不到main函数";
         Py_XDECREF(pFunc);
         Py_DECREF(pModule);
@@ -368,7 +369,9 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     }
     PyObject* pResult = PyObject_CallObject(pFunc, pArgs);
     if (!pResult) {
-        PyErr_Print();
+        QString errorMsg = getPythonTraceback();
+        QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
+        CtrlOutputParamsData.append(errorMsg);
         qDebug() << "函数调用失败";
         Py_DECREF(pArgs);
         Py_DECREF(pFunc);

@@ -107,9 +107,7 @@ void Run::run (QString ProcName,QList<cv::Mat> Images,QList <QString> &CtrlResul
     }
 
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-    QJsonObject rootObj = doc.object();
-    QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
-
+    QJsonArray paramsArray = doc.array();
     for (const QJsonValue &value : paramsArray) {
         QJsonObject obj = value.toObject();
         m_ProcName = obj["ProcedureName"].toString();
@@ -149,7 +147,7 @@ void Run::run (QString ProcName,QList<cv::Mat> Images,QList <QString> &CtrlResul
                 for (int i = 0; i < IconicOutputParamsData.CountObj(); i++) {
                     SelectObj(IconicOutputParamsData,&SelectedObj,i+1);
                     IconicResults.push_back(HObjectToMat(SelectedObj));
-                    cv::imwrite("D:/QtAlgorithm/Algorithm/Image"+to_string(i)+".jpg",HObjectToMat(SelectedObj));
+                    cv::imwrite("C:/AlgorithmData/Image"+to_string(i)+".jpg",HObjectToMat(SelectedObj));
                 }
             }
             else if (m_ProcType=="Python")
@@ -170,7 +168,7 @@ void Run::run (QString ProcName,QList<cv::Mat> Images,QList <QString> &CtrlResul
 
                 for (int i = 0; i < IconicOutputParamsData.size(); i++) {
                     IconicResults.push_back(IconicOutputParamsData[i]);
-                    cv::imwrite("D:/QtAlgorithm/Algorithm/Image"+to_string(i)+".jpg",IconicOutputParamsData[i]);
+                    cv::imwrite("C:/AlgorithmData/Image"+to_string(i)+".jpg",IconicOutputParamsData[i]);
                 }
             }
         }

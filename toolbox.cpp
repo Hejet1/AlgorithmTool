@@ -1,4 +1,5 @@
 #include "toolbox.h"
+#include "qevent.h"
 #include "ui_toolbox.h"
 using namespace HalconCpp;
 using namespace HDevEngineCpp;
@@ -21,7 +22,25 @@ toolbox::toolbox(QString Type,QWidget *parent) : QDialog(parent), ui(new Ui::too
 toolbox::~toolbox() {
     delete ui;
 }
+void toolbox::closeEvent(QCloseEvent *event)
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(
+        this,
+        "Confirm Save",
+        "Is All Params Saved?",
+        QMessageBox::Yes | QMessageBox::No
+        );
 
+    if (reply == QMessageBox::Yes)
+    {
+        event->accept();
+    }
+    else
+    {
+        event->ignore();
+    }
+}
 /// <summary>
 /// 设置列宽
 /// </summary>
