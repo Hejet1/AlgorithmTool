@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QMessageBox>
 #include <algorithmparam.h>
+#include <QList>
 namespace Ui {
 class toolbox;
 }

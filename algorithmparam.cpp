@@ -246,8 +246,7 @@ void AlgorithmParam::loadSavedParameters() {
     }
 
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-    QJsonObject rootObj = doc.object();
-    QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
+    QJsonArray paramsArray = doc.array();
 
     for (const QJsonValue &value : paramsArray) {
         QJsonObject obj = value.toObject();
@@ -417,32 +416,26 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
     file.setFileName(filePath);
 
     // 读取现有数据
-    QJsonDocument doc;
-    QJsonObject rootObj;
+    QJsonArray paramsArray;
     if (file.open(QIODevice::ReadOnly)) {
-        doc = QJsonDocument::fromJson(file.readAll());
-        rootObj = doc.object();
+        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+        paramsArray = doc.array();
         file.close();
     }
     // 创建新数组，只保留不同名的参数
-    QJsonArray paramsArray = rootObj["algorithmParams"].toArray();
     QJsonArray newParamsArray;
     for (const auto& param : paramsArray) {
         QJsonObject obj = param.toObject();
-        // 过滤掉同名的旧记录
         if (obj["ProcedureName"].toString() != ProcName) {
             newParamsArray.append(param);
         }
     }
-
-    // 添加新参数
     newParamsArray.append(paramObj);
-    rootObj["algorithmParams"] = newParamsArray;
 
     // 写入文件
+    QJsonDocument newDoc(newParamsArray);
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        doc.setObject(rootObj);
-        file.write(doc.toJson());
+        file.write(newDoc.toJson());
         file.close();
         QMessageBox::information(this, "Success", "Parameters saved.");
     } else {

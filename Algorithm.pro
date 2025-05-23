@@ -52,8 +52,13 @@ LIBS += -lhalcon \
         -lhalconcpp \
         -lhdevenginecpp
 
-LIBS += -L$$PWD/Libs/ -lopencv_world4110
-
 LIBS += -L$$PWD/Libs/ -lnpymath
 
 LIBS += -L$$PWD/Libs/ -lpython39
+
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/Libs/ -lopencv_world4110
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/Libs/ -lopencv_world4110d
+
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include

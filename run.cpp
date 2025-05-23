@@ -98,7 +98,7 @@ cv::Mat HObjectToMat(const HObject& halcon_image) {
 void Run::run (QString ProcName,QList<cv::Mat> Images,QList <QString> &CtrlResults,QList <cv::Mat> &IconicResults)
 {
     QFile file;
-    QString filePath = "D:/QtAlgorithm/Algorithm/algorithmparams.json";
+    QString filePath = "C:/AlgorithmData/algorithmparams.json";
     file.setFileName(filePath);
 
     if (!file.open(QIODevice::ReadOnly)) {

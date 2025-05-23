@@ -105,7 +105,7 @@ void toolbox::loadTableDataFromJson()
     QString filePath = ("C:/AlgorithmData/saved_data.json");
     QDir().mkpath("C:/AlgorithmData");
     file.setFileName(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
+    if (!file.open(QIODevice::ReadWrite)) {
         qDebug() << "No File Saved";
         return;
     }
@@ -178,6 +178,48 @@ void toolbox::loadTableDataFromJson()
 
             // 从映射中移除 uuid
             m_uuidToLineEdit.remove(uuid);
+            QFile file1;
+            QList <QString> Path = {"C:/AlgorithmData/saved_data.json","C:/AlgorithmData/algorithmparams.json"};
+            for (int i = 0; i < 2; ++i)
+            {
+                file1.setFileName(Path[i]);
+                if (!file1.open(QIODevice::ReadWrite)) {
+                    qWarning() << "无法打开文件:" << file1.errorString();
+                    return;
+                }
+                QByteArray data = file1.readAll();
+                QJsonDocument doc = QJsonDocument::fromJson(data);
+                if (doc.isNull()) {
+                    qWarning() << "JSON解析错误";
+                    file1.close();
+                    return;
+                }
+                QJsonArray array = doc.array();
+                bool found = false;
+                for (int i = 0; i < array.size(); ++i) {
+                    QJsonObject obj = array.at(i).toObject();
+                    if (obj["uuid"].toString() == uuid) {
+                        array.removeAt(i);
+                        found = true;
+                        break; // UUID唯一，找到即退出
+                    }
+                }
+                if (found) {
+                    // 更新JSON并保存
+                    doc.setArray(array);
+                    file1.resize(0); // 清空原内容
+                    if (file1.write(doc.toJson()) == -1) {
+                        qWarning() << "写入文件失败:" << file1.errorString();
+                    } else {
+                        qInfo() << "成功删除UUID:" << uuid;
+                    }
+
+                } else {
+                    qWarning() << "未找到UUID:" << uuid;
+                }
+
+                file1.close();
+            }
         });
         }
     }
@@ -254,8 +296,10 @@ void toolbox::on_AddAlgorithmButton_clicked()
 
         // 从映射中移除 uuid
         m_uuidToLineEdit.remove(uuid);
+
     });
 
 
 
 }
+
