@@ -22,9 +22,9 @@ QString getPythonTraceback() {
     PyObject *type = nullptr, *value = nullptr, *traceback = nullptr;
     PyErr_Fetch(&type, &value, &traceback);
     PyErr_NormalizeException(&type, &value, &traceback);
-
     QString errorMsg;
-    if (type && value) {
+    if (type && value)
+    {
         PyObject* tracebackModule = PyImport_ImportModule("traceback");
         if (tracebackModule) {
             PyObject* formatFunc = PyObject_GetAttrString(tracebackModule, "format_exception");
@@ -135,7 +135,8 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         // 导入模块（去掉.py后缀）
         QString moduleName = fileInfo.baseName();
         PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
-        if (!pModule) {
+        if (!pModule)
+        {
             //PyErr_Print();
 
             QString errorMsg = getPythonTraceback();
@@ -145,7 +146,8 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         }
 
         // 定义需要提取的字典名称列表
-        const char* targetDicts[] = {
+        const char* targetDicts[] =
+            {
             "CtrlInputParamDict",
             "CtrlOutputParamDict",
             "IconicInputParamDict",
@@ -153,9 +155,11 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
         };
 
         // 遍历所有目标字典
-        for (const char* dictName : targetDicts) {
+        for (const char* dictName : targetDicts)
+        {
             PyObject* pDict = PyObject_GetAttrString(pModule, dictName);
-            if (!pDict || !PyDict_Check(pDict)) {
+            if (!pDict || !PyDict_Check(pDict))
+            {
                 QMessageBox::critical(nullptr, "Error", QString("Can Not Find Dictionary: %1").arg(dictName),QMessageBox::Ok);
                 Py_XDECREF(pDict);
                 Py_DECREF(pModule);
@@ -175,7 +179,8 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
             else if (strcmp(dictName, "IconicOutputParamDict") == 0) targetList = &IconicOutputParams;
 
             // 提取所有键名
-            while (PyDict_Next(pDict, &pos, &key, &value)) {
+            while (PyDict_Next(pDict, &pos, &key, &value))
+            {
                 if (PyUnicode_Check(key)) {
                     const char* keyStr = PyUnicode_AsUTF8(key);
                     targetList->push_back(keyStr);
@@ -224,7 +229,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,HTuple CtrlInputParamsData,H
     HDevProcedureCall MyProcedureCall(MyProcedure);
     GenEmptyObj(&IconicOutputParamsData);
     //设置输入参数
-    for (int i = 0; i < CtrlInputParamsData.Length(); i++) {
+    for (int i = 0; i < CtrlInputParamsData.Length(); i++)
+    {
         const char m =CtrlInputParamsData[i].Type();
         if(m == 4)
         {
@@ -277,13 +283,15 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
 {
 
     IsRunSucess = false;
-    if (!Py_IsInitialized()) {
+    if (!Py_IsInitialized())
+    {
         InitializePython();// 初始化Python解释器
     }
 
     QString PythonHome = QString::fromWCharArray(Py_GetPythonHome()) ;
     qDebug() << "Python interpreter path:" << PythonHome;
-    if (!Py_IsInitialized()) {
+    if (!Py_IsInitialized())
+    {
         QMessageBox::critical(nullptr, "Error", "Python Initialize Failed");
         return;
     }
@@ -301,7 +309,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     // 强制清除模块缓存（关键修改点）
     PyObject* sys = PyImport_ImportModule("sys");
     PyObject* modules = PyObject_GetAttrString(sys, "modules");
-    if (PyDict_Contains(modules, PyUnicode_FromString(moduleName.toUtf8()))) {
+    if (PyDict_Contains(modules, PyUnicode_FromString(moduleName.toUtf8())))
+    {
         PyDict_DelItemString(modules, moduleName.toUtf8().constData());
     }
     Py_DECREF(modules);
@@ -310,7 +319,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
 
     // 导入模块
     PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
-    if (!pModule) {
+    if (!pModule)
+    {
         //PyErr_Print();
         QString errorMsg = getPythonTraceback();
         QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
@@ -319,7 +329,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
 
     // 获取main函数
     PyObject* pFunc = PyObject_GetAttrString(pModule, "main");
-    if (!pFunc || !PyCallable_Check(pFunc)) {
+    if (!pFunc || !PyCallable_Check(pFunc))
+    {
         QString errorMsg = getPythonTraceback();
         QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
         qDebug() << "找不到main函数";
@@ -335,12 +346,14 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     PyObject* pArgs = PyTuple_New(pArgsNum);
 
     // 添加控制参数
-    for (int i = 0; i < CtrlInputParamsData.size(); ++i) {
+    for (int i = 0; i < CtrlInputParamsData.size(); ++i)
+    {
         PyTuple_SetItem(pArgs, i, PyUnicode_FromString(CtrlInputParamsData[i].toUtf8().data()));
     }
 
     // 添加图像参数（字节流+尺寸信息）
-    for (int i = 0; i < IconicInputParamsData.size(); ++i) {
+    for (int i = 0; i < IconicInputParamsData.size(); ++i)
+    {
         cv::Mat img = IconicInputParamsData[i];
 
         // 序列化图像数据
@@ -349,26 +362,28 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
 
         // 创建Python字节对象
         PyObject* pBytes = PyBytes_FromStringAndSize(
-            reinterpret_cast<char*>(buffer.data()), buffer.size());
+        reinterpret_cast<char*>(buffer.data()), buffer.size());
 
         // 添加图像元数据
-        PyObject* pImageInfo = Py_BuildValue("(iiii)",
-                                             img.rows, img.cols, img.type(), buffer.size());
+        PyObject* pImageInfo = Py_BuildValue("(iiii)",img.rows, img.cols, img.type(), buffer.size());
 
         // 将元数据和字节流打包为元组
         PyObject* pImgTuple = PyTuple_Pack(2, pImageInfo, pBytes);
         PyTuple_SetItem(pArgs, CtrlInputParamsData.size() + i, pImgTuple);
     }
     // 调用函数
-    for (int i = 0; i < pArgsNum; ++i) {
+    for (int i = 0; i < pArgsNum; ++i)
+    {
         PyObject* item = PyTuple_GetItem(pArgs, i);
-        if (!item) {
+        if (!item)
+        {
             qDebug() << "参数" << i << "为空";
             return;
         }
     }
     PyObject* pResult = PyObject_CallObject(pFunc, pArgs);
-    if (!pResult) {
+    if (!pResult)
+    {
         QString errorMsg = getPythonTraceback();
         QMessageBox::critical(nullptr, "Error", errorMsg,QMessageBox::Ok);
         CtrlOutputParamsData.append(errorMsg);
@@ -379,7 +394,8 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
         return;
     }
 
-    if (PyDict_Check(pResult)) {
+    if (PyDict_Check(pResult))
+    {
         // 清空输出列表
         CtrlOutputParamsData.clear();
         IconicOutputParamsData.clear();
@@ -387,17 +403,20 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
 
         // 解析控制参数
         PyObject* ctrlOut = PyDict_GetItemString(pResult, "CtrlOutputParams");
-        if (PyDict_Check(ctrlOut)) {
+        if (PyDict_Check(ctrlOut))
+        {
             PyObject *paramKey, *paramValue;
             Py_ssize_t ctrlPos = 0;
 
             while (PyDict_Next(ctrlOut, &ctrlPos, &paramKey, &paramValue)) {
-                if (PyDict_Check(paramValue)) {
+                if (PyDict_Check(paramValue))
+                {
                     // 提取参数值
                     PyObject* valueObj = PyDict_GetItemString(paramValue, "Value");
                     PyObject* typeObj = PyDict_GetItemString(paramValue, "Type");
 
-                    if (valueObj && typeObj) {
+                    if (valueObj && typeObj)
+                    {
                         // 添加类型标记
                         TypeList.append(PyUnicode_AsUTF8(typeObj));
                         CtrlOutputParamsData.append(QString::fromUtf8(PyUnicode_AsUTF8(PyObject_Str(valueObj))));
@@ -454,7 +473,7 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     Py_DECREF(pArgs);
     Py_DECREF(pFunc);
     Py_DECREF(pModule);
-    // 监控文件变更（新增功能）
+    // 监控文件变更
     static QFileSystemWatcher watcher;
     if (!watcher.files().contains(ProgramPath)) {
         watcher.addPath(ProgramPath);
