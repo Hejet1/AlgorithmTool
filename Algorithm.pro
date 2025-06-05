@@ -11,11 +11,11 @@ CONFIG += c++17
 SOURCES += \
     Algorithm.cpp \
     algorithmparam.cpp \
+    customgraphicsview.cpp \
     main.cpp \
     mainwindow.cpp \
     my_hdevoperatorimpl.cpp \
     my_thread_impl.cpp \
-    qhalconwindow.cpp \
     run.cpp \
     test.cpp \
     toolbox.cpp
@@ -23,10 +23,10 @@ SOURCES += \
 HEADERS += \
     Algorithm.h \
     algorithmparam.h \
+    customgraphicsview.h \
     mainwindow.h \
     my_hdevoperatorimpl.h \
     my_thread_impl.h \
-    qhalconwindow.h \
     run.h \
     test.h \
     toolbox.h

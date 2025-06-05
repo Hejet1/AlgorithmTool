@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 #include <halconcpp/HalconCpp.h>
 #include <QMainWindow>
-#include <qhalconwindow.h>
 #include <QTableWidget>
 #include <QApplication>
 #include <QVBoxLayout>
@@ -38,7 +37,6 @@ private:
     Ui::MainWindow *ui;
     HalconCpp::HTuple m_hvHandle,hvImageHeight,hvImageWidth;
     HalconCpp::HObject m_hImg;
-    QHalconWindow *Disp;
     int CtrlParamsNum;
 
 

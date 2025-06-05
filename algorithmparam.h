@@ -1,6 +1,5 @@
 #include <QDialog>
 #include <halconcpp/HalconCpp.h>
-#include <qhalconwindow.h>
 #include <QLineEdit>
 #include <QLineEdit>
 #include <QLabel>
@@ -60,7 +59,6 @@ private:
     QString m_uuid;
     QString m_Type;
     Ui::AlgorithmParam *ui;
-    QHalconWindow *Disp;
     HalconCpp::HTuple m_hvHandle,hvImageHeight,hvImageWidth;
     HalconCpp::HObject Image;
     QList<QLineEdit*> m_ctrlInputLineEdits;

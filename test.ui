@@ -69,7 +69,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QGraphicsView" name="ImageGraphicsView">
+  <widget class="CustomGraphicsView" name="ImageGraphicsView">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -80,6 +80,13 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">customgraphicsview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

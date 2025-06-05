@@ -37,19 +37,19 @@ void test::on_Run_clicked()
     QList <QString> CtrlResults,ImgList;
     QString Imgs = ui->ImageTextEdit->toPlainText();
     ImgList =Imgs.split(",");
-    for (QString Path:ImgList)
+    for (const QString &Path:qAsConst(ImgList))
     {
         cv::Mat img = cv::imread(Path.toStdString());
         imgs.push_back(img);
     }
     QString ProcName = ui->ProcNameLineEdit->text();
     run.run(ProcName,imgs,CtrlResults,IconicResults);
-    for (QString CResult:CtrlResults)
+    for (const QString &CResult:qAsConst(CtrlResults))
     {
         ui->ResultTextEdit->append(CResult);
     }
 
-    for (cv::Mat IResult:IconicResults)
+    for (const cv::Mat &IResult:qAsConst(IconicResults))
     {
         QImage image = cvMatToQImage(IResult);
         QPixmap pixmap = QPixmap::fromImage(image);

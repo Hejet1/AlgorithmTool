@@ -13,12 +13,12 @@ AlgorithmParam::AlgorithmParam(QWidget *parent)
     ui->tableWidget->setHorizontalHeaderLabels({"ParamName", "Value"});
     ui->tableWidget->verticalHeader()->setVisible(false);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    Disp = new QHalconWindow(this);
-    Disp->setMinimumSize(50,50);
-    QVBoxLayout *DispVBox = new QVBoxLayout();
-    DispVBox->addWidget(Disp,1);
-    DispVBox->addSpacing(8);
-    ui->DispWidget->setLayout(DispVBox);
+    // Disp = new QHalconWindow(this);
+    // Disp->setMinimumSize(50,50);
+    // QVBoxLayout *DispVBox = new QVBoxLayout();
+    // DispVBox->addWidget(Disp,1);
+    // DispVBox->addSpacing(8);
+    // ui->DispWidget->setLayout(DispVBox);
 }
 AlgorithmParam::~AlgorithmParam() {
     delete ui;
@@ -60,26 +60,26 @@ void AlgorithmParam::populateParameters(QString ProgramPath,QString ProcName,std
     // 控制输入参数
     addSectionHeader("CtrlInputParams");
     CtrlInputParamsCount = 0;
-    for (std::string paramName : CtrlInputParams) {
+    for (const std::string &paramName : CtrlInputParams) {
         CtrlInputParamsCount = CtrlInputParamsCount+1;
         addControlInputRow(QString::fromStdString(paramName));
     }
 
     // 图像输入参数
     addSectionHeader("IconicInputParams");
-    for (std::string paramName : IconicInputParams) {
+    for (const std::string &paramName : IconicInputParams) {
         addImageInputRow(QString::fromStdString(paramName));
     }
 
     // 控制输出参数
     addSectionHeader("CtrlOutputParams");
-    for (std::string paramName : CtrlOutputParams) {
+    for (const std::string &paramName : CtrlOutputParams) {
         addControlOutputRow(QString::fromStdString(paramName));
     }
 
     // 图像输出参数
     addSectionHeader("IconicOutputParams");
-    for (std::string paramName : IconicOutputParams) {
+    for (const std::string &paramName : IconicOutputParams) {
         addImageOutputRow(QString::fromStdString(paramName));
     }
 }
@@ -216,15 +216,38 @@ void AlgorithmParam::addImageOutputRow(const QString &name) {
 /// <summary>
 /// 显示图像
 /// </summary>
+QImage cvMatToQImage1(const cv::Mat& mat) {
+    switch (mat.type()) {
+    // 处理 8UC3 类型（BGR 彩色图）
+    case CV_8UC3: {
+        QImage image(mat.data, mat.cols, mat.rows,
+                     static_cast<int>(mat.step), QImage::Format_BGR888);
+        return image.copy(); // 避免内存被释放后失效
+    }
+    // 处理 8UC1 类型（灰度图）
+    case CV_8UC1: {
+        QImage image(mat.data, mat.cols, mat.rows,
+                     static_cast<int>(mat.step), QImage::Format_Grayscale8);
+        return image.copy();
+    }
+    default:
+        throw std::runtime_error("Unsupported Mat format");
+    }
+}
 void AlgorithmParam::loadAndDisplayImage(const QString &path) {
     try {
         ReadImage(&Image,path.toStdString().c_str());
-        GetImageSize(Image,&hvImageWidth,&hvImageHeight);
-        int Height = hvImageHeight[0].I();
-        int Width = hvImageWidth[0].I();
-        Disp->GetHalconBuffer()->SetPart(0,0,Height-1,Width-1);
-        Disp->GetHalconBuffer()->DispObj(Image);
-        Disp->GetHalconBuffer()->FlushBuffer();
+        cv::Mat img = cv::imread(path.toStdString().c_str());
+        QImage image = cvMatToQImage1(img);
+        QPixmap pixmap = QPixmap::fromImage(image);
+        QGraphicsScene* scene = new QGraphicsScene(this);
+        ui->ImageGraphicsView->setScene(scene);
+        scene->clear();
+        scene->addPixmap(pixmap);
+        scene->setSceneRect(pixmap.rect());
+
+        // 自动调整视图缩放
+        ui->ImageGraphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
     } catch (HalconCpp::HException &e) {
         QMessageBox::critical(this, "Error", "ImageLoadFail" + QString(e.ErrorMessage().Text()));
     }
