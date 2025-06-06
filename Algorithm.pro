@@ -14,8 +14,6 @@ SOURCES += \
     customgraphicsview.cpp \
     main.cpp \
     mainwindow.cpp \
-    my_hdevoperatorimpl.cpp \
-    my_thread_impl.cpp \
     run.cpp \
     test.cpp \
     toolbox.cpp
@@ -25,8 +23,6 @@ HEADERS += \
     algorithmparam.h \
     customgraphicsview.h \
     mainwindow.h \
-    my_hdevoperatorimpl.h \
-    my_thread_impl.h \
     run.h \
     test.h \
     toolbox.h
