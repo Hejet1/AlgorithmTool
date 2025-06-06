@@ -9,7 +9,6 @@
 #include <QDebug>
 #include <QProcess>
 #include <QFileSystemWatcher>
-#include "my_hdevoperatorimpl.h"
 #include <QObject>
 #include <list>
 #include <halconcpp/HalconCpp.h>

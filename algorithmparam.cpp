@@ -293,7 +293,7 @@ void AlgorithmParam::loadSavedParameters() {
         ProcName = obj["ProcedureName"].toString();
         ProgramPath = obj["ProgramPath"].toString();
         ProcType = obj["Type"].toString();
-        // 2. 读取参数列表（保持原有逻辑）
+        // 2. 读取参数列表
         CtrlInputParams.clear();
         QJsonArray ctrlInputNames = obj["ctrlInputParams"].toArray();
         for (const QJsonValue &param : ctrlInputNames) {
@@ -319,7 +319,7 @@ void AlgorithmParam::loadSavedParameters() {
             IconicOutputParams.push_back(param.toString().toStdString());
         }
 
-        // 3. 读取保存的控制输入参数值（新增逻辑）
+        // 3. 读取保存的控制输入参数值
         QMap<QString, QString> ctrlInputValues;
         QJsonArray savedCtrlInputs = obj["ctrlInputParams"].toArray();
         for (const QJsonValue &paramValue : savedCtrlInputs) {
@@ -329,7 +329,7 @@ void AlgorithmParam::loadSavedParameters() {
         // 4. 生成表格
         populateParameters(ProgramPath, ProcName, CtrlInputParams, IconicInputParams, CtrlOutputParams, IconicOutputParams);
 
-        // 5. 填充保存的值（新增逻辑）
+        // 5. 填充保存的值
         for (int row = 0; row < ui->tableWidget->rowCount(); ++row) {
             QTableWidgetItem *nameItem = ui->tableWidget->item(row, 0);
             if (!nameItem) continue; // 跳过分类标题行
@@ -402,11 +402,11 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
     paramObj["ProcedureName"] = ProcName;
     paramObj["ProgramPath"] = ProgramPath;
 
-    // 1. 保存控制输入参数的值（新增逻辑）
+    // 1. 保存控制输入参数的值
     QJsonArray ctrlInputArray;
     for (int row = 0; row < ui->tableWidget->rowCount(); ++row) {
         QTableWidgetItem *nameItem = ui->tableWidget->item(row, 0);
-        if (!nameItem) continue; // 跳过分类标题行（无item的行）
+        if (!nameItem) continue; // 跳过分类标题行
 
         QString paramName = nameItem->text();
         // 检查是否为控制输入参数
@@ -430,7 +430,7 @@ void AlgorithmParam::on_SaveParameterButton_clicked()
     }
     paramObj["ctrlInputParams"] = ctrlInputArray;
 
-    // 2. 其他参数类型（保持原有逻辑）
+    // 2. 其他参数类型
     QJsonArray iconicInputArray, ctrlOutputArray, iconicOutputArray;
     for (const auto& param : IconicInputParams) {
         iconicInputArray.append(QString::fromStdString(param));

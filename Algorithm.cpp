@@ -132,7 +132,7 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
                            "sys.stderr = open('python_errors.log', 'w')\n" );        
         PyRun_SimpleString(QString("sys.path.insert(0, '%1')").arg(dirPath).toUtf8().constData());
 
-        // 导入模块（去掉.py后缀）
+        // 导入模块
         QString moduleName = fileInfo.baseName();
         PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
         if (!pModule)
@@ -190,11 +190,9 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
             Py_DECREF(pDict);
         }
 
-        // 清理资源
         Py_DECREF(pModule);
 
 
-        // 设置过程名
         ProcName = fileInfo.baseName();
     }
     IsGetSuccess = true;
@@ -204,9 +202,6 @@ void Algorithm::GetParameter(QString ProgramPath,QString AlgType,std::list<std::
 /// </summary>
 void Algorithm::ExcuteProcedure(QString ProgramPath,HTuple CtrlInputParamsData,HObject IconicInputParamsData,HTuple &CtrlOutputParamsData,HObject &IconicOutputParamsData,QList<QString> &TypeList,bool &IsRunSucess)
 {
-    //调用dev覆盖
-   // MyHDevOperatorImpl op_impl;
-   // HDevEngine().SetHDevOperatorImpl(&op_impl);
     //调用算子
     IsRunSucess = false;
     HObject SelectedObj;
@@ -306,7 +301,6 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
                        "sys.stderr = open('python_errorsrun.log', 'w')\n" );
     PyRun_SimpleString(QString("sys.path.insert(0, '%1')").arg(dirPath).toUtf8().constData());
 
-    // 强制清除模块缓存（关键修改点）
     PyObject* sys = PyImport_ImportModule("sys");
     PyObject* modules = PyObject_GetAttrString(sys, "modules");
     if (PyDict_Contains(modules, PyUnicode_FromString(moduleName.toUtf8())))
@@ -315,7 +309,7 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
     }
     Py_DECREF(modules);
     Py_DECREF(sys);
-    PyRun_SimpleString("import gc; gc.collect()"); // 强制垃圾回收
+    PyRun_SimpleString("import gc; gc.collect()"); 
 
     // 导入模块
     PyObject* pModule = PyImport_ImportModule(moduleName.toUtf8().constData());
@@ -351,7 +345,7 @@ void Algorithm::ExcuteProcedure(QString ProgramPath,QList<QString> CtrlInputPara
         PyTuple_SetItem(pArgs, i, PyUnicode_FromString(CtrlInputParamsData[i].toUtf8().data()));
     }
 
-    // 添加图像参数（字节流+尺寸信息）
+    // 添加图像参数
     for (int i = 0; i < IconicInputParamsData.size(); ++i)
     {
         cv::Mat img = IconicInputParamsData[i];
